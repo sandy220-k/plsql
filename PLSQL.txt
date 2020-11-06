@@ -1,0 +1,4344 @@
+			PL/SQL Notes..07/09/2020 Onword...
+
+-Generally in oracle if you want to data from one oracle table into another oracle table with put 
+affecting source then we must used indexed table.
+-For improve performance of the indexed table then oracle provided special datatype that is 
+binary_integer datatype to the key field in indexed table.
+-Based on this datatype oracle internally stores index values in binary formate with in key field .
+-This is an user define type so we are creating two step process 
+-first we are creating type then only we are allowed the variable of that type
+Syntax:-
+1) type typename is table of datatype(size)
+index by binary_integer;
+
+2)variable typename;
+	
+-This indexed section is creating declared section of the pl/sq block...
+SQL> declare
+   type t1 is table of number(10)
+    index by binary_integer;
+    v_t t1;
+    begin
+    v_t(1):=10;
+    v_t(2):=20;
+    v_t(3):=30;
+    v_t(4):=40;
+   v_t(5):=50;
+   dbms_output.put_line(v_t(1));
+   dbms_output.put_line(v_t.first);
+   dbms_output.put_line(v_t.last);
+   dbms_output.put_line(v_t.prior(3));
+   dbms_output.put_line(v_t.next(2));
+   dbms_output.put_line(v_t.count);
+   v_t.delete(1,3);
+  dbms_output.put_line(v_t.count);
+  v_t.delete;
+  dbms_output.put_line(v_t.count);
+  end;
+  /
+output
+=====
+10
+1
+5
+2
+3
+5
+2
+0
+PL/SQL procedure successfully completed.
+
+Q.write a pl/sql program which is used to transfer all empname from emp table into indexed table
+and also display cotaint from indexed table 
+Ans:-
+SQL>  declare
+  2      type t1 is table of varchar2(10)
+  3      index by binary_integer;
+  4      v_t t1;
+  5     cursor c1 is select ename from emp;
+  6      n number(10):=1;
+  7      begin
+  8     open c1;
+  9    loop
+ 10    fetch c1 into v_t(n);
+ 11     exit when c1%notfound;
+ 12     n:=n+1;
+ 13     end loop;
+ 14     close c1;
+ 15     for i in v_t.first..v_t.last
+ 16     loop
+ 17     dbms_output.put_line(v_t(i));
+ 18     end loop;
+ 19     end;
+ 20  /
+SMITH
+ALLEN
+WARD
+JONES
+MARTIN
+BLAKE
+CLARK
+SCOTT
+KING
+TURNER
+ADAMS
+JAMES
+FORD
+MILLER
+
+PL/SQL procedure successfully completed.
+
+-whenever resource table having large amount of data and also when we are transfer data 
+into collection by using cursor then those type of application deggrate performance because cursor
+internally uses record by record process. to overcome this problem for improve perfoemance of 
+this type of application then oaracle 8i introduced bulk collect clause.
+
+BULK COLLECT CLAUSE
+=================
+
+index by table
+==========
+-when ever we are using bulk collect clause then oracle server automatically select all data in 
+column at a time from a table and then that data transfer into collections
+thats why when ever target is collection then only we are allow to used bulk collect clause 
+-this bulk collect clause used in executable section of the pl/sql blocks
+Syntax:-
+	select * bulk collect into collectionvarname
+	from tablename where condition;
+q.write a pl/sql program which is used to transfer all empname from emp table into index table.
+ by using bulk collect clause 
+
+     declare
+      type t1 is table of varchar2(10)
+      index by binary_integer;
+      v_t  t1;
+     begin
+     select ename bulk collect into v_t from emp;
+      for i in v_t.first..v_t.last
+      loop
+      dbms_output.put_line(v_t(i));
+      end loop;
+     end;
+    /
+SMITH
+ALLEN
+WARD
+JONES
+MARTIN
+BLAKE
+CLARK
+SCOTT
+KING
+TURNER
+ADAMS
+JAMES
+FORD
+MILLER
+
+PL/SQL procedure successfully completed.
+
+Interview q.write a pl/sql program will store next 10 dates into indexed table and also display containt 
+from index table.
+Ans:-
+ SQL> declare
+  2        type t1 is table of date
+  3        index by binary_integer;
+  4        v_t  t1;
+  5       begin
+  6            for i in 1..10
+  7        loop
+  8  	v_t(i):=sysdate+1;
+  9  end loop;
+ 10  for i in v_t.first..v_t.last
+ 11  loop
+ 12        dbms_output.put_line(v_t(i));
+ 13        end loop;
+ 14  end;
+ 15  /
+09-SEP-20
+09-SEP-20
+09-SEP-20
+09-SEP-20
+09-SEP-20
+09-SEP-20
+09-SEP-20
+09-SEP-20
+09-SEP-20
+09-SEP-20
+PL/SQL procedure successfully completed.
+
+q.write a pl/sql program which is used to transfer all emp joining dates from emp table into
+ indexed table and also display contaent from indexed table
+Ans:-
+
+
+
+
+SQL>  declare
+  2        type t1 is table of date
+  3        index by binary_integer;
+  4        v_t  t1;
+  5       begin
+  6       select hiredate bulk collect into v_t from emp;
+  7        for i in v_t.first..v_t.last
+  8        loop
+  9        dbms_output.put_line(v_t(i));
+ 10        end loop;
+ 11       end;
+ 12  /
+17-DEC-80
+20-FEB-81
+22-FEB-81
+02-APR-81
+28-SEP-81
+01-MAY-81
+09-JUN-81
+19-APR-87
+17-NOV-81
+08-SEP-81
+23-MAY-87
+03-DEC-81
+03-DEC-81
+23-JAN-82
+
+Using varchar2 datatype as key feild in indexed table
+======================================
+- declare
+      type t1 is table of varchar2(10)
+      index by binary_integer;
+      v_t  t1;
+x varchar2(10);
+     begin
+v_t('a'):='murali';
+v_t('b'):='efg';
+v_t('c'):='cde';
+v_t('d'):='abc';
+x:='a';
+loop
+     dbms_output.put_line(v_t(x));
+x:=v_t.next(x);
+exit when x is null
+    end loop;
+     end;
+-In indexed table we are also used charecter data type with in key field but we are not allow to display 
+total containt of the indexed table by using for loop because for lopp index variable internally uses 
+integer data type to overcome this problem if you want to display total conataint of the index table 
+when we are using simple loop
+
+Using record type datatype(%rowtype)  in value field
+======================================
+-SQL>  SQL> declare
+  2      type t1 is table of emp%rowtype
+  3      index by binary_integer;
+  4      v_t t1;
+  5      begin
+  6      select * bulk collect into v_t from emp;
+  7      for i in v_t.first..v_t.last
+  8      loop
+  9      dbms_output.put_line(v_t(i).ename||''||v_t(i).sal||''||v_t(i).hiredate);
+ 10     end loop;
+ 11     end;
+ 12  /
+SMITH90017-DEC-80
+ALLEN160020-FEB-81
+WARD125022-FEB-81
+JONES297502-APR-81
+MARTIN125028-SEP-81
+BLAKE285001-MAY-81
+CLARK255009-JUN-81
+SCOTT300019-APR-87
+KING510017-NOV-81
+TURNER150008-SEP-81
+ADAMS110023-MAY-87
+JAMES95003-DEC-81
+FORD300003-DEC-81
+MILLER140023-JAN-82
+
+PL/SQL procedure successfully completed.
+
+Return Resultset:-
+=============
+-If you want to return large amount of data from oracle database into client application then first 
+we must devoloped database server application in oracle database and then only execute that
+ application by using client application.
+-In oracle we are implimenting databse server application by using following two methods this are
+Method1:-Using indexed table 
+Method2:-Using RefCursor
+
+Method1:Using Index by table-:
+======================
+-In this method first we must devoloped database server application by using function and also here
+we must used function return type as indexed table 
+q. write a pl/sql database server application which return employee details from emp table into 
+client application by using index by table.
+SQL> create or replace package pj1
+    is
+   type t1 is table of emp%rowtype
+   index by ninary_integer;
+   function f1 return t1;
+   end;
+   /
+
+Warning: Package created with compilation errors.
+
+SQL> create or replace package body pj1
+  is
+   function f1 return t1
+   is
+   v_t t1;
+   begin
+   select * bulk collect into v_t from emp;
+   return v_t;
+   end f1;
+   end;
+   /
+execution(by using pl/sql client)
+=======================
+SQL> declare
+  2  x pj1.t1;
+  3  begin
+  4  x:=pj1.f1;
+  5  for i in x.first..x.last
+  6  loop
+  7  dbms_output.put_line(x(i).ename||'  '||x(i).sal||' '||x(i).hiredate);
+  8  end loop;
+  9  end;
+ 10  /
+
+=====================================================================
+
+exists collection method used in indexed table:- 
+==================================
+-exists collection method is used in index by table,nested table,varray.
+-exists collection method always returns boolean value either true or false 
+-exists collection method is used to test whether requested  data is available  or not available in a
+collection 
+-Syntax:-
+	collectionvarname.exists(indexvarname);
+
+declare
+      type t1 is table of varchar2(10)
+      index by binary_integer;
+      v_t  t1;
+     begin
+     select ename bulk collect into v_t from emp;
+      v_t.delete(3);
+      for i in v_t.first..v_t.last
+      loop
+      dbms_output.put_line(v_t(i));
+      end loop;
+     end;
+/
+OUTPUT
+======
+SMITH
+ALLEN
+ERROR at line 1:
+ORA-01403: no data found
+
+Note1:-
+=====
+-In oracle index by table,nested table having gaps thats why those collection are also called as
+sparse collections. 
+
+Note2:-
+=====
+-whenever index by table,nested table having gaps then we are try to display total content of those 
+collection then oracle server return an error ORA-1403:No Data Found 
+-to overcome this problem then we must used exists collection  methods 
+
+Solution:-
+=======
+declare
+      type t1 is table of varchar2(10)
+      index by binary_integer;
+      v_t  t1;
+     begin
+     select ename bulk collect into v_t from emp;
+      v_t.delete(3);
+      for i in v_t.first..v_t.last
+      loop
+      if v_t.exists(i) then 
+      dbms_output.put_line(v_t(i));
+      end if;
+      end loop;
+     end;
+/
+OUTPUT
+======
+SMITH
+ALLEN
+JONES
+MARTIN
+BLAKE
+CLARK
+SCOTT
+KING
+TURNER
+ADAMS
+JAMES
+FORD
+MILLER
+PL/SQL procedure successfully completed.
+
+Nested Table,Varray:-
+===============
+-Oracle 8.0 introduced nested table,varrays
+-This collection also stores no. of data item in single unit.
+-Before we are storing actual data into this collection then we must intitalize by using constructor
+-Here constructore name is same like a  
+
+Nested Table:-
+==========
+-Oracle 8.0 introduced nested table 
+-Nested table is an unbound table which is used to store of data item into a single unit
+-In nested table always indexes are integers only and also by default this indexes are  always start 
+with 1.
+-Generally we are not allow to store indexed table permently into oracle database and also we 
+can not add or remove indexes in indexed table to overcome this problem then oracle 8.0 introduced 
+extension of the indexed table called nested table which is used to add or remove indexes by using
+extend,trim collection methos and also we are allow to stored nested table permently in oracle 
+database by using SQL langauge 
+-Nested table having exists,first,last,prioer,next,count,delete(index),delete(oneindex,anotherindex)
+,delete ,extend,trim collection methods
+-Nested table is an user define type so we are creating in two step process i.e 
+first we are creating type,then only we are allow to create variable of that type.
+Syntax;-
+	1)type typename is table of datatype(size);
+	2)varname typename:=typename(); ---------->Constructor
+
+index by table :-
+===========
+eg.1
+SQL> declare
+  2  type t1 is table of number(10)
+  3  index by binary_integer;
+  4  v_t t1;
+  5  begin
+  6  v_t(500):=30;
+  7  dbms_output.put_line(v_t(500));
+  8  end;
+  9  /
+OUTPUT
+======
+30
+PL/SQL procedure successfully completed.
+
+-When ever we are using index by table then we are not required to reserved the memory explicitly
+-Because based on key feild,value feild oracle server only internally  automatically reserved the 
+memory
+eg.2
+SQL> declare
+  2  type t1 is table of number(10);
+  3  v_t t1:=t1();
+  5  begin
+  6  v_t(500):=30;
+  7  dbms_output.put_line(v_t(500));
+  8  end;
+
+ORA:-Subscibe beyond count
+
+-Before we are storing data into nested table the we must reserve the memory upto those indexes 
+ by using extend collection method. Otherwise oracle server return an error.
+
+Solution:-
+======= 
+SQL> declare
+    type t1 is table of number(10);
+   v_t t1:=t1();
+    begin
+    v_t.extend(500);
+       v_t(500):=30;
+    dbms_output.put_line(v_t(500));
+    end;
+/
+Note:-
+=====
+-In oracle we can also stored date into nested table without using extend collection method 
+-In this case we must specify actual value with in constructor itself 
+eg.
+SQL> declare
+  2  type t1 is table of number(10);
+  3  v_t t1 :=t1(10,20,30,40,50);
+  4  begin
+  5  for i in v_t.first..v_t.last
+  6  loop
+  7  dbms_output.put_line(v_t(i));
+  8  end loop;
+  9  end;
+ 10  /
+OUTPUT
+======
+10
+20
+30
+40
+50
+PL/SQL procedure successfully completed.
+SQL> SQL> declare
+  2    type t1 is table of number(10);
+  3    v_t t1;
+  4    v_t2 t1:=t1();
+  5    begin
+  6    if v_t is null then
+  7    dbms_output.put_line('v_t is null');
+  8  else
+  9  dbms_output.put_line('v_t is not null');
+ 10    end if;
+ 11    if v_t2 is null then
+ 12    dbms_output.put_line('v_t2 is null');
+ 13    else
+ 14    dbms_output.put_line('v_t2 is not null');
+ 15     end if;
+ 16     end;
+ 17  /
+v_t is null
+v_t2 is not null
+
+PL/SQL procedure successfully completed.
+
+example1:-
+1)declare
+type type1 is table of number(10);
+v_t1 t1;
+example2:-
+1)declare
+type t1 is table of number(10);
+v_t2 t1:=t1();
+example3:-
+SQL> declare
+  2  type t1 is table of number(10);
+  3  v_t t1:=t1();
+  4  begin
+  5  v_t.extend;
+  6  v_t(1):=10;
+  7  dbms_output.put_line(v_t(1));
+  8  end;
+  9  /
+output
+=====
+10
+PL/SQL procedure successfully completed..
+
+
+
+example:-
+========
+SQL> declare
+  type t1 is table of number(10);
+  v_t t1:=t1(10,20,30,40);
+  begin
+   dbms_output.put_line(v_t.first);
+    dbms_output.put_line(v_t.last);
+     dbms_output.put_line(v_t.prior(3));
+    dbms_output.put_line(v_t.next(2));
+    dbms_output.put_line(v_t.count);
+   v_t.extend;
+   v_t(5):=50;
+   v_t.extend(2);
+   v_t(6):=60;
+   v_t(7):=70;
+   v_t.extend(3,2);
+   v_t.trim;
+    dbms_output.put_line(v_t.count);
+   for i in v_t.first..v_t.last
+   loop
+    dbms_output.put_line(v_t(i));
+   end loop;
+   v_t.delete;
+    dbms_output.put_line(v_t.count);
+   end;
+/
+OUTPUT
+======
+1
+4
+2
+3
+4
+9
+10
+20
+30
+40
+50
+60
+70
+20
+20
+0
+
+PL/SQL procedure successfully completed.
+
+Imp question.
+Difference between delete,trim collection methods:-
+=====================================
+SQL>  declare
+  2    type t1 is table of number(10);
+  3    v_t t1:=t1(10,20,30,40,50,60,70);
+  4     begin
+  5     v_t.trim(2);
+  6     dbms_output.put_line('after deleting last two element');
+  7     for i in v_t.first..v_t.last
+  8     loop
+  9      dbms_output.put_line(v_t(i));
+ 10     end loop;
+ 11     v_t.delete(2);
+ 12      dbms_output.put_line('after deleting second element');
+ 13     for i in v_t.first..v_t.last
+ 14       loop
+ 15     if v_t.exists(i) then
+ 16     dbms_output.put_line(v_t(i));
+ 17    end if;
+ 18    end loop;
+ 19    end;
+ 20  /
+after deleting last two element
+10
+20
+30
+40
+50
+after deleting second element
+10
+30
+40
+50
+PL/SQL procedure successfully completed.
+
+q.write a pl/sql programm which is used to transfer all employee from emp table into nested table 
+and also display content from nested table 
+Ans:-
+
+-Oracle 8i onward we are also used bulk collect cause which is used to transfer data from oracle table 
+into nested table 
+-In this case we are not required to use extend collection method because when we are using 
+bulk collect clause then oracle server only internally automatically reserved the memory in nested 
+table.
+declare
+   type t1 is table of varchar(10);
+    v_t t1 :=t1();
+    begin
+    select ename bulk collect into v_t from emp;
+    for i in v_t.first..v_t.last
+    loop
+    dbms_output.put_line(v_t(i));
+    end loop;
+   end;
+   /
+
+varray:-
+======
+-Oracle 8.0 introduced varray 
+-Varray is bounded table which is used to stored number of data iem in  a single unit
+-Varray stores upto 2 gb data.
+-before we are storing data into varray then we must intialize by using constructor 
+-Here constroctor name is also same as type name 
+-Here also always indexes are integer and also those indexes are also start with 1.
+-This is an user define type so we are creating two step process
+1.fisrt we are creating type then only creating variable of that type
+Syntax:-
+======
+1)type typename is varray(size) of datatype(size);
+2)varname typename:=typename(); ---------->constructor.
+
+SQL> declare
+    type t1 is varray(10) of number(10);
+   v_t t1:=t1();
+   begin
+   dbms_output.put_line(v_t.limit);
+   dbms_output.put_line(v_t.first);
+    dbms_output.put_line(v_t.last);
+    dbms_output.put_line(v_t.prior(3));
+    dbms_output.put_line(v_t.next(3));
+   v_t.extend;
+   v_t(5):=50;
+   v_t.extend(2);
+   v_t(6):=60;
+   v_t(7):=70;
+  v_t.extend(3,2);
+  v_t.trim;
+  dbms_output.put_line(v_t.count);
+  for i in v_t.first..v_t.last
+  loop
+   dbms_output.put_line(v_t(i));
+  end loop;
+   end;
+   /
+
+Note:-
+====
+In varray we can not delete perticular index or range of indexes by using delete collection method
+but,we can delete all the elements by using delete collection methods 
+-Genereally indexe by table or nested table are spark collection but varray is not spark collection
+because varray does not have any gaps 
+
+q.write a pl/sql program which is used to transfer first 10 ename from emp table into varray and 
+aslo display content of varray.
+Ans:
+  
+SQL>  declare
+  2     type t1 is varray(14) of varchar(10);
+  3      v_t t1 :=t1();
+  4      begin
+  5      select ename bulk collect into v_t from emp
+  6  where rownum<=10;
+  7      for i in v_t.first..v_t.last
+  8      loop
+  9      dbms_output.put_line(v_t(i));
+ 10      end loop;
+ 11     end;
+ 12  /
+SMITH
+ALLEN
+WARD
+JONES
+MARTIN
+BLAKE
+CLARK
+SCOTT
+KING
+TURNER
+PL/SQL procedure successfully completed.
+
+
+			BULK BIND
+			========
+-In oracle when ever we are submitting pl/sql block into oracle server then sql statement are 
+exicuted in sql engine and also procedural statement are exicuted saperatly with in pl/sql engine
+-This type of exicution methods are also called as contex switching exicution methods.
+-When ever pl/sql block having more no of sql/procedural statements then this type of contex 
+swithing exicution method degrade performance to overcome this problem for improve performance
+of this type of application then oracle 8i introduced bulk bind process by using collections
+-Bulk Bind process is a special type of coding by using forall statement 
+-In bulk bind process we are using forall statements 
+-forall is one of the most important performance inhancement feature in pl/sql..
+we shuold used it when we are exicuting dml statement inside a loop forall typically exicute
+ multiple statement  
+in pl/sql when ever dml statement available inside a loop the oracle server internally uses 
+
+Syntax:-
+	forall indexvarname in
+	collectionvarname.first..collectionvarname.last
+	dml statement where
+	colname=collectionvarname(indexvarname);
+
+miss class
+
+=====================================================================
+With using Bulk Bind:-
+===============
+There are two step to using in the bulk bind process
+This steps are 
+Step 1) fetching data from resource into collection by using bulk collect clause
+Step 2) Process all data in a collection at a time by using sql engine.
+			(or)
+       Process table data at a time by using collection data through forall statement (actal bulk bind)
+
+-Step 1:-Fetching data from resource into collection by using bulk collect clause 
+-Before we are using forall statement then first we must fetch data from resource into collection 
+by using bulk collect clause.
+-In pl/sql bulk collect clause used in following three ways this are 
+	1)bulk collect clause used in
+	select...into clause 
+	2)cursor...fetch....statement
+	3)dml....returing...into clause
+
+1)bulk collect clause used in select...into clause:-
+===================================
+-Syntax:-
+	select * bulk collect into collectionvarname
+	 from tablename where condition;
+-Here this bulk collect clause is used in exicutable section of the pl/sql block.
+
+q.write a pl/sql program which is used to transfer all employe name from emp table into 
+indexed table by using bulk collect clause and also display content from indexed by table
+ SQL> declare
+  2     type t1 is table of emp%rowtype
+  3     index by binary_integer;
+  4     v_t t1;
+  5     begin
+  6     select * bulk collect into v_t from emp;
+  7     for i in v_t.first..v_t.last
+  8     loop
+  9     dbms_output.put_line(v_t(i).ename);
+ 10     end loop;
+ 11     end;
+ 12  /
+SMITH
+ALLEN
+WARD
+JONES
+MARTIN
+BLAKE
+CLARK
+SCOTT
+KING
+TURNER
+ADAMS
+JAMES
+FORD
+MILLER
+PL/SQL procedure successfully completed.
+
+Exicution difference between cursor,bulk collect clause:-
+========================================
+ex1:-(cursor exicution)
+================
+ex2:-(bulk collect)
+============
+
+2) Bulk collect clause used in cursor fetch statement :-
+=======================================
+-In oracle we can also used bulk collect clause in cursor fetched statement by using following syntax
+Syntax:-
+	fetch cursorname bulk collect into
+	collectionvarname [limit anynumber];
+
+-Generally collection are exicuted with in pga(private globle area) memory area.
+-This memory is available in server process.
+-pga memory area performance is very high compair to sga(system globle area) memory area.
+-but pga memory area size is very less compair to sga memory area 
+-Generally when ever we are using bulk collect clause then sufficient memory area is required
+otherwise oracle server return an error to overcome this problem oracle introduced limit clause
+along with cursor fetch statement.
+-In the above syntax limit clause is an optional clause.
+
+ex.
+ declare
+   type t1 is table of varchar2(10)
+   index by binary_integer;
+   v_t t1;
+   v_t1 t1;
+   cursor c1 is select ename,job from emp;
+   begin
+   open c1;
+   fetch c1 bulk collect into v_t,v_t1;
+   close c1;
+   for i in v_t.first..v_t.last
+   loop
+   dbms_output.put_line(v_t(i)||'  '||v_t1(i));
+   end loop;
+  end; 
+/
+output
+=====
+SMITH  CLERK
+ALLEN  SALESMAN
+WARD  SALESMAN
+JONES  MANAGER
+MARTIN  SALESMAN
+BLAKE  MANAGER
+CLARK  MANAGER
+SCOTT  ANALYST
+KING  PRESIDENT
+TURNER  SALESMAN
+ADAMS  CLERK
+JAMES  CLERK
+FORD  ANALYST
+MILLER  CLERK
+=======================================================================
+	VVVVVIMP....
+Calsulating Elapsed Time In Pl/Sql:-
+=========================
+-In pl/sql if you want to calculate elapsed time of pl/sql code then we are  using get_time function
+from dbms_utility pachage 
+-This function always return number datatype
+Syntax:-
+	variablename:=dbms_utility.get_time;
+ex.
+SQL> declare
+   type t1 is table of all_objects.object_name%type
+   index by binary_integer;
+   v_t t1;
+   v_t1 t1;
+   cursor c1 is select owner,object_name from all_objects;
+   z1 number(10);
+   z2 number(10);
+   begin
+   z1:=dbms_utility.get_time;
+   for i  in c1
+   loop
+   null;
+   end loop;
+   z2:=dbms_utility.get_time;
+   dbms_output.put_line('Elapsed time for normal fetch'||' '||(z2-z1)||' '||'hsecs');
+   z1:=dbms_utility.get_time;
+   open c1;
+   fetch c1 bulk collect into v_t,v_t1;
+   close c1;
+   z2:=dbms_utility.get_time;
+   dbms_output.put_line('Elapsed time for bulk collect fetch'||' '||(z2-z1)||' '||'hsecs');
+   end;
+/
+output
+=====
+Elapsed time for normal fetch 309 hsecs
+Elapsed time for bulk collect fetch 293 hsecs
+PL/SQL procedure successfully completed.
+
+Bulk collect clause used in dml... returning...into clause:-
+========================================
+-Returning..into clauses are used to retrive dml transaction values into variable.
+-This clauses are also used in sql language 
+-But when we are using this clauses in sql then oracle server stores only one value at a time in a
+variable 
+ex.
+SQL> variable a varchar2(20);
+SQL> update emp set sal=sal+100 where ename='KING' returning job into :a;
+SQL> print a;
+A
+--------------------------------
+PRESIDENT
+
+-Oracle 8i onwards we can also used bulk collect clause in this dml returning..into clauses with 
+in pl/sql.
+-In this case oracle server retrives multiple records from dml statements and the store those
+multiple records into the collection 
+
+
+SQL> declare
+  2  type t1 is table of number(10)
+  3  index by binary_integer;
+  4  v_t t1;
+  5  begin
+  6  update emp set sal=sal+1000
+  7  where job='CLERK' returning sal bulk collect into v_t;
+  8  dbms_output.put_line('affected number of clerk are:'||' '||sql%rowcount);
+  9  for i in v_t.first..v_t.last
+ 10  loop
+ 11  dbms_output.put_line(v_t(i));
+ 12  end loop;
+ 13  end;
+ 14  /
+output
+=====
+affected number of clerk are: 4
+2000
+2200
+2050
+2600
+PL/SQL procedure successfully completed.
+
+Step2:-Process all data in a collection at a time by using sql engine 
+=====			(or)
+     Process table data by using collection data at a time through forall statement(actual buk bind) 
+=====================================================================
+-Once data is avilable in a collection then process all data in collection a time or 
+-Process table data by using collection data through forall stetements.
+-This process is also called as bulk bind process 
+-This process automatically improve performance of the dml statements because this process 
+automatically reduces contex switches between sql engine,pl/sql engine.
+-In this process we are using bulk update,bulk delete,bulk insert by using following syntax
+Syntax:-
+	forll indexvarname in 
+	collectionvarname.first..collectionvarname.last
+	dml statement where 
+	columnname=collectionvarname(indexvarname);
+
+-
+SQL> declare
+    type t1 is table of number(10)
+index by binary_integer;
+    v_t  t1:=t1(10,20,30,40,50);
+    begin
+    forall i in v_t.first..v_t.last
+    update emp set sal=sal+100
+    where deptno=v_t(i);
+    end;
+/
+
+q.write a pl/sql bulk bind program which is used to retrive all employee number into index table
+by using bulk collect clause and also increment sal of the all this emp of this emp in emp table 
+by using this collection data through for all statement 
+			or
+conver following pl/sql code into bulk bind code 
+ans;
+
+declare
+    type t1 is table of number(10)
+index by binary_integer;
+    v_t t1;
+    begin
+select empno bulk collect into v_t from emp;
+v_t.delete(3);
+    forall i in v_t.first..v_t.last
+    update emp set sal=sal+100
+    where  empno=v_t(i);
+    end;
+/
+
+ex2.
+SQL> declare
+  2      type t1 is table of number(10)
+  3  index by binary_integer;
+  4      v_t t1;
+  5      begin
+  6  select empno bulk collect into v_t from emp;
+  7  v_t.delete(3);
+============
+  8      forall i in v_t.first..v_t.last
+  9      update emp set sal=sal+100
+ 10      where  empno=v_t(i);
+ 11      end;
+ 12  /
+ERROR at line 1:
+ORA-22160: element at index [3] does not exist
+ORA-06512: at line 8
+
+-When ever index by table and nested table having gaps then those collection are not allowed in
+bulk bind process(forall statement).
+-to overcome this problem we must used varrays in bulk bind process 
+-because varrays does not have any gaps but varrays process upto 2gb data 
+-to overcome this problem oracle 10g introduced indices of clause in bulk bind process 
+-this indices of clause is used in for all statement when we are using this clause then we can also 
+use spark collection in bulk bind process
+Syntax:-
+	forall indexvarname in indices of collectionvarname
+	dml statement 
+	where columnname=collectionvarname(indexvarname) ;
+ 
+Solution
+======
+ex.
+declare
+    type t1 is table of number(10)
+index by binary_integer;
+    v_t t1;
+    begin
+select empno bulk collect into v_t from emp;
+v_t.delete(3);
+    forall i in indices  of v_t
+    update emp set sal=sal+100
+    where  empno=v_t(i);
+    end;
+/
+PL/SQL procedure successfully completed.
+
+Bulk insert
+========
+SQL>SQL>  declare
+  2     type t1 is table of varchar2(20)
+  3      index by binary_integer;
+  4      v_t t1;
+  5      begin
+  6      select ename bulk collect into v_t from emp;
+  7      v_t(3):='abc';
+  8      v_t(4):='pqr';
+  9      v_t(6):='xyz';
+ 10     forall i in v_t.first..v_t.last
+ 11     insert into target values(v_t(i));
+ 12     end;
+ 13  /
+PL/SQL procedure successfully completed.
+
+SQL> select * from target;
+
+NAME
+----------
+Sandy
+SMITH
+abc
+pqr
+JONES
+xyz
+BLAKE
+CLARK
+SCOTT
+KING
+TURNER
+ADAMS
+JAMES
+FORD
+MILLER
+15 rows selected.
+
+ex2.
+SQL> declare
+  2  type t1 is varray(10) of number(10);
+  3  v_t t1:=t1(10,20,30,40,50);
+  4  begin
+  5  forall i in v_t.first..v_t.last
+  6  delete from emp where deptno=v_t(i);
+  7  end;
+  8  /
+
+PL/SQL procedure successfully completed.
+
+	VVVVIMP*
+Bulk Exception:- forall and dml errors
+===========	   (or)
+                            bulk exceptions
+	           ==============	
+-forall is one of the most important performance enhancement feature in pl/sql
+-we should use it when ever we are exicuting DML statements inside a loop thats why forall 
+typically execute multiple  statements.
+-When ever an exception is occurs in one of those DML statements then default behaviour is 
+	1) That statement is rollback and also forall exicution stops 
+	2)ALL(previous) successfull statements are not rolled back
+-When ever an exception occur also if you want to continued forall statement exicution then we 
+must add save exception clause with in bulk bind process 
+-save exception clause tells oracle to save exception information and then continued processing 
+all of the DML statements.
+-This save exception clause is used in forall statement
+Syntax:-
+=====
+	forall indexvarname in collectionvarname.first..collectonvarname.last save exception
+	DML statement where columnname=collectionvarname(indexvarname);
+
+-when ever an exception is occured in bulk bind process(forall stmt) then oracle server stop forall
+statement execution 
+-This exception are also called as bulk exceptions to overcome this problem for continue forall 
+statement execution then oracle provided special type exception handling machanism with in 
+bulk bind proccess by using save exception clause 
+-When ever we are adding save exception clause then oracle server internally automatically creates 
+pre defined indexed by table 
+-This indexed by table name is sql%bulk_exceptions.
+-This indexed table autoatically stores exception information from bulk bind process. this indexed
+table are also called as pseudo collection because this indexed table having only one collection
+method count.
+-This indexed table having two fields this are 
+	1)error_index
+	2)error_code
+
+1)Error_index:-
+==========
+-error_index feild stores index number of the collection where the exception is occured in bulk 
+bind process 
+2)Error_code:-
+==========
+-Where as error_code field store oracle error number where exception occured in bulk bind proces
+
+SQL> declare
+    type t1 is table of number(10);
+    v_t t1:=t1(10,20,30,40,50);
+    begin
+    v_t(3):=null;
+    v_t(4):=null;
+    forall i in v_t.first..v_t.last 
+    insert into target values(v_t(i));
+    end;
+   /
+ERROR at line 1:
+ORA-01400: cannot insert NULL into ("SCOTT"."TARGET"."SNO")
+ORA-06512: at line 7
+
+-For handling exception in bulk bind process then oracle provided following two step process this are
+	step 1) Add save exception clause 
+	step2)count number of exceptions in pseudo collection 
+
+step 1) Add save exception clause:-
+=========================
+-For handling exception in bulk bind proccess then we must add save exception clause with in 
+forall statements.
+-When ever we are adding save exception clause then oracle server automatically saves exception
+information with in sql%bulk_exception pseudo collection and then continue forall statement 
+execution.
+
+step2)count number of exceptions in pseudo collection:- 
+========================================
+-For handling exceptions in bulk bind proccess then first we must add save exception clause with
+ in forall statement
+-When we are adding save exception clause  then oracle server internally automatically creates 
+sql%bulk_exceptions pseudo collection 
+-save exception clause tells to oracle to save exception information in this psedo collection
+-For handling bulk exceptiion then we must count ,number of exceptions by using count collection
+method through following syntax
+Syntax:-
+	varname:=sql%bulk_exceptions.count;
+
+-This count collection methos is used in default handler with in exception section of the pl/sql 
+block
+Solution
+======
+ declare
+    type t1 is table of number(10);
+     v_t t1:=t1(10,20,30,40,50);
+    z number(10);
+    begin
+    v_t(3):=null;
+    v_t(4):=null;
+    forall i in v_t.first..v_t.last save exceptions
+   insert into target values(v_t(i));
+   exception
+   when others then
+   z:=sql%bulk_exceptions.count;
+dbms_output.put_line(z);
+    end;
+/
+output
+=====
+2 		error...
+PL/SQL procedure successfully completed.
+SQL> select * from target;
+       SNO
+----------
+        10
+        20
+        50
+        
+-When ever we are using bulk inserts when we are executing number of times above pl/sql block
+then those number of times data is transferd into target table.
+-To overcome this problem if you want to display data in target table only one time then we are 
+using either delete or truncate commands in pl/sql block.
+-Generally truncate command having more performance then the delete command
+-But we are not used truncate command in pl/sql because truncate is an DDL command.
+-To overcome this problem if you want to used DDL command in pl/sql then we must used 
+Dynamic Sql construct by using execute immidiate clause.
+Syntax:-
+	execute immidiate 'sql statement' ;
+SQL> declare
+  2      type t1 is table of number(10);
+  3       v_t t1:=t1(10,20,30,40,50);
+  4      z number(10);
+  5      begin
+  6      v_t(3):=null;
+  7      v_t(4):=null;
+  8  execute immediate 'truncate table target';
+  9      forall i in v_t.first..v_t.last save exceptions
+ 10     insert into target values(v_t(i));
+ 11     exception
+ 12     when others then
+ 13     z:=sql%bulk_exceptions.count;
+ 14  dbms_output.put_line(z);
+ 15      end;
+ 16  /
+output
+=====
+2
+PL/SQL procedure successfully completed.
+SQL> select * from target;
+       SNO
+----------
+        10
+        20
+        50
+
+-Sql%bulk_exceptions pseudo collection having two feilds this are 
+	1)Error_index
+	2)Error_code 
+ 
+1)Error_index:-
+==========
+-error_index feild stores index number of the collection where the exception is occured in bulk 
+bind process.
+Syntax:-
+=====
+	sql%bulk_exceptions(indexvarname.error_index);
+
+2)Error_code:-
+==========
+- error_code field store oracle error number where exception is  occured in bulk bind proces
+Syntax:-
+======
+	sql%bulk_exceptions(indexvarname.error_code);
+
+-declare
+    type t1 is table of number(10);
+     v_t t1:=t1(10,20,30,40,50);
+    z number(10);
+    begin
+    v_t(3):=null;
+    v_t(4):=null;
+execute immediate 'truncate table target';
+    forall i in v_t.first..v_t.last save exceptions
+   insert into target values(v_t(i));
+   exception
+   when others then
+   z:=sql%bulk_exceptions.count;
+dbms_output.put_line(z);
+for j in 1..z
+loop
+dbms_output.put_line(sql%bulk_exceptions(j).error_index||' ' ||sql%bulk_exceptions(j).error_code);
+end loop;   
+ end;
+/
+output
+=====
+2
+3 1400
+4 1400
+PL/SQL procedure successfully completed
+
+sql%bulk_rowcount:-
+===============
+-This attribute always return number datatype it returns affected number of rows in each group 
+with in bulk bind process i.e this attribute counts affected number of records in each group with 
+in forall statement
+Syntax:-
+======
+		sql%bulk_rowcount(indexvarname);
+ SQL> declare
+  2      type t1 is table of number(10);
+  3      v_t t1:=t1(10,20,30,40,50);
+  4      begin
+  5    forall i in v_t.first..v_t.last
+  6      update emp set sal=sal+100
+  7      where deptno=v_t(i);
+  8      for i in v_t.first..v_t.last
+  9      loop
+ 10     dbms_output.put_line('affected number of row in deptno'||' '||v_t(i)||' '||'is:'||' ' ||sql%bulk_rowcount(i));
+ 11     end loop;
+ 12     end;
+ 13  /
+affected number of row in deptno 10 is: 3
+affected number of row in deptno 20 is: 5
+affected number of row in deptno 30 is: 6
+affected number of row in deptno 40 is: 0
+affected number of row in deptno 50 is: 0
+
+PL/SQL procedure successfully completed.
+   /
+
+vvimp.	ref cursor    or	Dynamic cursor	or 	cursor variable
+====	=======		===========		===========
+
+-Oracle 7.2 introduced refcursor
+-refcursor is an user define type which is used to process multiple records and also this is an 
+record by record process.
+-Generally in static cursors oracle server executes only one select statement at compile time for 
+a singe active set area.
+-where as,In refcursors oracle server executes multiple select statements dynamically for a single
+active set area thats why this cursor are also called as dynamic cursors.
+-Generally we are not allow to pass static cursor as parameter into the subprogram
+-where as,We are allow to pass refcursor as parameter into the sub programs.because basically
+refcursor is an user define datatype 
+-Generally we are allow to pass user define types as a parameter into the subprograms.
+-Generally static cursor does not return multiple records into the client apllication where as
+-refcursor returns multiple records into client applications 
+-Generally refcursor is a user define type so we are creating refcursor by using two step process
+i.e first we are creating type then only creating variable from that type thats why recursor is also
+called as cursor varibale 
+							23/09/2020
+-Oracle having two types of refcursor this are,
+	1)strong refcursor 
+	2)weak refcursor
+
+-strong refcursor is a refcursor which having a return type where as weak refcursor is refcursor 
+which does not have return type 
+strong refcursor syntax:-
+==================
+	type typename is ref cursor return 
+	recordtypedatatype;
+	variable name;------------>strong refcursor variable name.
+
+weak refcursor syntax:-
+=================
+	type typename is ref cursor;
+	variablename typename;---------->weak refcursor variable name.
+
+-refcursor is declared in declare section of the pl/sql block.
+-In refcursor we must specify select statement by using open...for statement by using following syntax
+Syntax:-
+	open refcursor varname for select * from 
+	tablename where condition;
+
+-open...for clause must be specified with in excutable section of the pl/sql block
+
+weak refcursor:-
+============
+-weak refcursor is refcursor which does not have return type 
+
+q.write a pl/sql program which is used to display the employee who are getting 2000 sal in emp 
+table by using refcursor 
+Ans:-
+SQL> declare
+   v_t sys_refcursor;
+    i emp%rowtype;
+    begin
+    open v_t for select * from emp where sal>2000;
+    loop
+    fetch v_t into i;
+    exit when v_t%notfound;
+   dbms_output.put_line(i.ename||' '||i.sal);
+   end loop;
+  end;
+  /
+OutPut
+=====
+CLARK 2750
+BLAKE 2950
+JONES 3075
+SCOTT 3100
+FORD 3100
+Sandy 5100
+KING 5300
+PL/SQL procedure successfully completed.
+
+sys_refcursor:-
+==========
+-Oracle 9i introduced sys_refcursor pre defined type in place of weak refcursor 
+Synatx:-
+======
+	refcursorvarname   sys_refcursor;
+q.write a pl /sql program which is used to display the emplyoee who are getting more then 2000 
+sal by using sys_refcursor predefinrd type
+Ans:-
+SQL>  declare
+  2     v_t sys_refcursor;
+  3      i emp%rowtype;
+  4      begin
+  5      open v_t for select * from emp where sal>2000;
+  6      loop
+  7      fetch v_t into i;
+  8      exit when v_t%notfound;
+  9     dbms_output.put_line(i.ename||' '||i.sal);
+ 10     end loop;
+ 11    end;
+ 12  /
+OutPut
+=====
+CLARK 2750
+BLAKE 2950
+JONES 3075
+SCOTT 3100
+FORD  3100
+Sandy 5100
+KING   5300
+PL/SQL procedure successfully completed.
+
+******VVVVVIMP********
+		Passing refcursor as parameter into the stored procedure
+		=========================================
+1)passing sys_refcursor as 'in' parameter into the stored procedure:- 
+=================================================
+-q.Write a pl/sql stored procedure for passing sys_refcursor as a in parameter which is used to display
+from emp table 
+Ans:-
+SQL> create or replace procedure proce2(v_t in sys_refcursor)
+  2      is
+  3    i emp%rowtype;
+  4      begin
+  5      loop
+  6      fetch v_t into i;
+  7      exit when v_t%notfound;
+  8      dbms_output.put_line(i.ename||' '||i.sal);
+  9      end loop;
+ 10     end;
+ 11  /
+Procedure created.
+
+-When ever we are passing refcursor as in parameter into the procedure then we are not allow 
+to used open...for statement in procedure body.becuase in parameter are used to pass the values
+into the p[rocedure body where as open...for statement try to return values from the procedure 
+body.
+execution:-(by using pl/sql client)
+========================
+-> SQL> declare
+  2     v_t sys_refcursor;
+  3      begin
+  4      open v_t for select * from emp where sal>2000;
+  5      proce2(v_t);
+  6      close v_t;
+  7      end;
+  8  /
+CLARK 2750
+BLAKE 2950
+JONES 3075
+SCOTT 3100
+FORD 3100
+Sandy 5100
+KING 5300
+
+PL/SQL procedure successfully completed.
+
+Passing sys_refcursor as out parameter into the stored prodedure:-
+================================================
+q.write a pl/sql stored procedure passing sys_refcursor is a out parameter and display the 
+details of emp table 
+ Ans:-
+SQL> create or replace procedure pr1(v_t out sys_refcursor)
+  2  is
+  3  begin
+  4  open v_t for select * from emp where sal>2000;
+  5  end;
+  6  /
+Procedure created.
+
+execution:-(by using annonymous block)
+========
+
+SQL>  declare
+  2     v_t sys_refcursor;
+  3  i emp%rowtype;
+  4     begin
+  5     pr1(v_t);
+  6     loop
+  7     fetch v_t into i;
+  8     exit when v_t%notfound;
+  9     dbms_output.put_line(i.ename||' '||i.sal);
+ 10     end loop;
+ 11     end;
+ 12  /
+OutPut
+=====
+CLARK 2750
+BLAKE 2950
+JONES 3075
+SCOTT 3100
+FORD 3100
+Sandy 5100
+KING 5300
+PL/SQL procedure successfully completed.
+
+-Oracle provided following two methods which return multiple records from oracle database into
+client applications.
+Method 1:- Using sys_refcursor as out parameter into the stored procedure 
+
+Method 2:-Using sys_refcursor as return type in stored functions.
+
+Method 2:-Using sys_refcursor as return type in stored functions:-
+===============================================
+-q.write a pl/sql stored function by using sys_refcursor is an return type which return multiple 
+record from emp table
+Ans:-
+
+
+SQL> create or replace function f1
+  2      return sys_refcursor
+  3      is
+  4      v_t sys_refcursor;
+  5      begin
+  6      open v_t for select * from emp where sal>2000;
+  7      return v_t;
+  8      end;
+  9  /
+Function created.
+
+exicution by using select statement:-
+=========================
+SQL> select f1 from dual;
+
+F1
+--------------------
+CURSOR STATEMENT : 1
+
+CURSOR STATEMENT : 1
+
+     EMPNO ENAME      JOB              MGR HIREDATE         SAL       COMM     DEPTNO
+---------- ---------- --------- ---------- --------- ---------- ---------- ----------
+      7782 CLARK      MANAGER         7839 09-JUN-81       2750                    10
+      7698 BLAKE      MANAGER         7839 01-MAY-81       2950                    30
+      7566 JONES      MANAGER         7839 02-APR-81       3075                    20
+      7788 SCOTT      ANALYST         7566 19-APR-87       3100                    20
+      7902 FORD       ANALYST         7566 03-DEC-81       3100                    20
+        50 Sandy                                           5100        200
+      7839 KING       PRESIDENT            17-NOV-81       5300                    10
+
+7 rows selected.
+
+using packge:-
+==========
+SQL> create or replace package pj1
+  2  is
+  3  type t1 is ref cursor;
+  4  procedure p1(v_t out t1);
+  5  end;
+  6  /
+
+SQL> create or replace package body pj1
+  2  is
+  3  procedure p1(v_t out t1)
+  4  is
+  5  begin
+  6  open v_t for select * from emp;
+  7  end p1;
+  8  end;
+  9  /
+Package created
+
+execution:-
+========
+SQL> variable a refcursor;
+SQL> exec pj1.p1(:a);
+PL/SQL procedure successfully completed.
+SQL> print a;
+
+     EMPNO ENAME      JOB              MGR HIREDATE         SAL       COMM     DEPTNO
+---------- ---------- --------- ---------- --------- ---------- ---------- ----------
+        50 Sandy                                           5100        200
+      7369 SMITH      CLERK           7902 17-DEC-80       1000                    20
+      7499 ALLEN      SALESMAN        7698 20-FEB-81       1700        300         30
+      7521 WARD       SALESMAN        7698 22-FEB-81       1350        500         30
+      7566 JONES      MANAGER         7839 02-APR-81       3075                    20
+      7654 MARTIN     SALESMAN        7698 28-SEP-81       1350       1400         30
+      7698 BLAKE      MANAGER         7839 01-MAY-81       2950                    30
+      7782 CLARK      MANAGER         7839 09-JUN-81       2750                    10
+      7788 SCOTT      ANALYST         7566 19-APR-87       3100                    20
+      7839 KING       PRESIDENT            17-NOV-81       5300                    10
+      7844 TURNER     SALESMAN        7698 08-SEP-81       1600          0         30
+      7876 ADAMS      CLERK           7788 23-MAY-87       1200                    20
+      7900 JAMES      CLERK           7698 03-DEC-81       1050                    30
+      7902 FORD       ANALYST         7566 03-DEC-81       3100                    20
+      7934 MILLER     CLERK           7782 23-JAN-82       1600                    10
+
+15 rows selected.
+
+-Note:-
+=====
+-In oracle we are not allow to declare refcursor variable in packages but,we are alow to pass
+refcursor as a parameter into a packaged subprograms.
+e.g:-
+===
+SQL> create or replace package pk2
+  2  is
+  3  type t1 is ref cursor;
+  4  v_t t1;
+  5  end;
+  6  /
+Warning: Package created with compilation errors.  
+SQL> show error;
+Errors for PACKAGE PK2:
+LINE/COL ERROR
+-------- -----------------------------------------------------------------
+4/5      PL/SQL: Declaration ignored
+4/5      PLS-00994: Cursor Variables cannot be declared as part of a
+         package
+
+q.write a pl/sql ref cursor program when user enter deptno is 10 then display 10th dept details
+from emp table and also when user enter deptno is 20 then 20th dept details from emp table.
+Ans
+ declare
+  2  type t1 is ref cursor;
+  3  v_t t1;
+  4  i emp%rowtype;
+  5  j dept%rowtype;
+  6  v_deptno number(10):=&deptno;
+  7  begin
+  8  if v_deptno=10 then
+  9  open v_t for select * from emp where deptno=10;
+ 10  loop
+ 11  fetch v_t into i;
+ 12  exit when v_t%notfound;
+ 13  dbms_output.put_line(i.ename||' '||i.sal||' '||i.deptno);
+ 14  end loop;
+ 15  elseif v_deptno=20 then
+ 16  open v_t for select * from dept where deptno=20;
+ 17  loop
+ 18  fetch v_t into j;
+ 19  exit when v_t%notfound;
+ 20  dbms_output.put_line(j.deptno||' '||j.dname||' '||j.loc);
+ 21  end loop;
+ 22  end if;
+ 23  end;
+ 24  /
+
+		Local Subprograms,..
+		==============
+-Local subprograms are named pl/sql blocks which is used to solve perticular task.
+-Oracle having two types of local subprograms this are 
+	1.local procedure
+	2.local function
+-In oracle local subprograms are used in either in annonymous block or in stored procedure
+-local subprograms does not have create or replace keywords and also local subprograms are not
+store in oracle database.
+-Generally we are allow to used local subprogram for code reusability.
+-local subprogram is defined in declare section of the pl/sql block and then call those local 
+subprogram in immediate executable section.
+-In oracle local subprograms are defined in bottom of the declare section in annonymous block
+or bottom of the declare section in stored procedure and then call those  sub programs in 
+immidiate executablesection 
+Syntax:-
+======
+		declare 
+	--------->variable declarations,constant declarations;
+	--------->types declarations;
+	--------->cursor declarations;
+	--------->procedure declarations(formal parameters )
+		is/as
+		..........
+		begin
+		-----------
+		end[procedure name];
+	----------->function functionname(formal parameters) return datatype
+		is/as
+		------------
+		- - - - - - - -
+		begin
+		 - - - - - - - -
+		return expression;
+		end[function name];
+		BEGIN
+		procedurename(actual parameters);
+		varname :=functionname(actual parametrs);
+		end;
+		/
+ex.
+SQL> declare
+    procedure pt1
+    is
+    begin
+    dbms_output.put_line('Local procedure');
+    end pt1;
+    begin
+    pt1;
+    end;
+ 10  /
+Local procedure
+
+PL/SQL procedure successfully completed.
+
+
+ex2
+SQL> create or replace procedure pt1
+  2  is
+  3      procedure pt1
+  4      is
+  5      begin
+  6      dbms_output.put_line('Local procedure');
+  7      end pt1;
+  8      begin
+  9      pt1;
+ 10      end;
+ 11  /
+
+Procedure created.
+
+SQL> exec pt1;
+Local procedure
+
+ex.
+SQL> declare
+  2  type t1 is ref cursor;
+  3  v_t t1;
+  4  procedure p1(p_t in t1)
+  5  is
+  6  i emp%rowtype;
+  7  begin
+  8  loop
+  9  fetch p_t into i;
+ 10  exit when p_t%notfound;
+ 11  dbms_output.put_line(i.ename||' '||i.sal);
+ 12  end loop;
+ 13  end p1;
+ 14  begin
+ 15  open v_t for select * from emp where rownum<=10;
+ 16  p1(v_t);
+ 17  close v_t;
+ 18  open v_t for select * from emp where ename like 'M%';
+ 19  p1(v_t);
+ 20  close v_t;
+ 21  open v_t for select * from emp where job='CLERK';
+ 22  p1(v_t);
+ 23  close v_t;
+ 24  end;
+ 25  /
+Sandy 5100
+SMITH 1000
+ALLEN 1700
+WARD 1350
+JONES 3075
+MARTIN 1350
+BLAKE 2950
+CLARK 2750
+SCOTT 3100
+KING 5300
+MARTIN 1350
+MILLER 1600
+SMITH 1000
+ADAMS 1200
+JAMES 1050
+MILLER 1600
+PL/SQL procedure successfully completed.
+		
+		Strong RefCursor
+		============
+-Strong refcursor is a refcursor which having a return type. 
+-In oracle this return type must be record type datatype.
+-This is an user define type so we are creating in two step process i.e
+first we are creating type then only we are creating varibale from that type 
+Syntax;-
+1.	type typename is ref cursor return record type datatype;
+2.	variablename typename;
+
+-Strong refcursor provide Type sefty  i.e when we are declaring strong refcursor type then we get
+ advantage of compile type varification 
+ -ex.
+SQL> declare
+    type t1 is ref cursor return emp%rowtype;
+    v_t t1;
+    begin
+    open v_t for select * from emp where deptno=10;
+    dbms_output.put_line('Welcome');
+    close v_t;
+    end;
+    /
+Welcome
+
+PL/SQL procedure successfully completed.
+
+ex.
+declare
+    type t1 is ref cursor return emp%rowtype;
+    v_t t1;
+    begin
+    open v_t for select * from dept where deptno=10;
+    dbms_output.put_line('Welcome');
+    close v_t;
+    end;
+/
+PLS-00382: expression is of wrong type over strong
+
+Advantage of weak refcursor type over  strong refcursor:-
+========================================= 
+-In oracle weak refcursor type more 
+
+and also work with any rowtype structure  but it does not provide compile tie varification whether 
+correct type of record has been used for fetch cursor or not
+
+ex.1
+SQL> declare
+       type t1 is ref cursor;
+       v_t t1;
+       begin
+       open v_t for select * from emp where deptno=10;    
+       dbms_output.put_line('Welcome');
+       close v_t;
+       end;
+        /
+Welcome
+PL/SQL procedure successfully completed.
+
+ex.2
+SQL> declare
+       type t1 is ref cursor;
+       v_t t1;
+       begin
+       open v_t for select * from dept where deptno=10;  
+       dbms_output.put_line('Welcome');
+       close v_t;
+       end;
+        /
+Welcome
+PL/SQL procedure successfully completed.
+
+PL/SQL Record:-
+============
+-This is an user define type which is used to store different datatype into single unit
+-It is also same as structure in c laguage 
+-This is an user define so we are creating in two step process i.e first we are creating type then 
+only  we are creating a variable from that type.
+Syntax:-
+1.        Type typename is record (attributename1 datatype(size),attributename2 datatye(size)..);
+2.         variablename typename;
+ex.
+SQL> declare
+  2  type t1 is record(a1 number(10),a2 varchar2(10),a3 number(10));
+  3  v_t t1;
+  4  begin
+  5  v_t.a1:=101;
+  6  v_t.a2:='Sandip';
+  7  v_t.a3:=5000;
+  8  dbms_output.put_line(v_t.a1||' '||v_t.a2||' '||v_t.a3);
+  9  end;
+ 10  /
+OutPut
+=====
+101 Sandip 5000
+PL/SQL procedure successfully completed.
+ex
+SQL> create or replace package pj1
+  2  is
+  3  type t1 is record(a1 number(10),a2 varchar2(10),a3 number(10));
+  4  procedure p1;
+  5  end;
+  6  /
+
+Package created.
+SQL> create or replace package body pj1
+	  is
+    procedure p1
+    is
+v_t t1;  
+    begin
+    select empno,ename,sal into v_t from emp where ename='KING';
+   dbms_output.put_line(v_t.a1||''||v_t.a2||''||v_t.a3);
+end p1;
+   end;
+/
+
+utl_file package
+===========
+-Oracle 7.3 introduced utl_file package 
+-This package is used to write data into os file and also read data from an os file.
+-If you want to write a data into an os file then we are using putf() or put_line() procedure  from 
+utl_file packages where as if you want to read data from an os file then we are using get_line()
+procedure from utl_file package.
+-Before we are writting  utl_file programs than we must create alies directory related to physical 
+directory by using following syntax:-
+Syntax:-
+	create or replace directory directoryname as 'path';
+
+-Before we are creating alias directory then database administrator must give create any directory 
+system privilege to user by using following syntax otherwise oracle server return an error 
+-Syntax;-
+======
+	grant create any directory to username;
+ex.
+SQL> conn sys as sysdba
+Enter password:sys
+Connected.
+SQL> grant create any directory to scott;
+Grant succeeded.
+
+SQL> conn scott/Sandy220
+Connected.
+
+SQL> create or replace directory XYZ as ':D\';
+Directory created.
+
+-Before we are performing read,write operation then database administrator must gives read,write 
+object privileges on alias directory by using following syntax:-
+Syntax:-
+=====
+	grant read,write on directory directoryname to username;
+ex.
+SQL> conn sys as sysdba
+Enter password:sys
+Connected.
+SQL> grant read,write on directory XYZ to scott;
+Grant succeeded.
+
+SQL> conn scott/Sandy220
+Connected.
+
+	WRITING Data into an Os File:-
+	=====================
+-Step 1:- Before we are opening a file then we must declare file pointer variable in declare section 
+of the pl/sql block  by using file_type from utl_file package.
+Syntax;-
+=====
+	filepointervarname utl_file.file_type;
+
+-Step 2:-Before we are writing data into file then we must open the file by using fopen() function
+from utl_file package. This function used in executable section of the pl/sql block
+Syntax:-
+=====
+	fileponitervarname:=utl_file.fopen('alias directoryname',' Filename','Mode');
+						read(r),write(w),append(a) mode..
+-This fopen() function accept three parameter and also return file_type datatype	.
+
+-Step 3:- If You want to write an data into an os file then we are using putf() procedure from utl_file
+package. This procedure accepts two parameter  
+Syntax:-
+=====
+	utl_file.putf(filepointervarname,'content');
+
+-Step 4:-And last only we must close the file by using fclose() procedure from utl_file package 
+Syntax:-
+=====
+	utl_file.fclose(filepointervarname);
+
+q.write a pl/sql program which is used to write any content into an os file by using an utl_file package
+Ans:-
+
+SQL> declare
+    fp utl_file.file_type;
+    begin
+    fp:=utl_file.fopen('ABC','File.txt','w');
+    utl_file.putf(fp,'select * from emp where ename in(10,20,30)');
+   utl_file.fclose(fp);
+    end;
+   /
+q.write a pl /sql program which is used to stored all employee ename from emp table into an os
+ file by using utl_file package 
+Ans:-
+ SQL> declare
+    fp utl_file.file_type;
+    cursor c2 is select ename from emp;
+    begin
+    fp:=utl_file.fopen('ABC','ENAME.txt','w');
+    for i in c2
+    loop
+    utl_file.putf(fp,i.ename);
+    end loop;
+   utl_file.fclose(fp);
+   end;
+   /
+Note:-
+=====
+-when ever we used putf procedure and also we are retriving table data then oracle server stored 
+that column data in horizentale manner with in os file. to overcome this problem if you want to
+stored column data in verticle manner then we must used \n new line charector and also used 
+%s access specifier with in second parameter of the putf procedure 
+-This second parameter must be specified with in single coat
+Syntax:-
+======
+	utl_file.putf(filepointervarname,'%s\n',varname); 
+
+Solution
+======
+    declare
+    fp utl_file.file_type;
+    cursor c2 is select ename from emp;
+    begin
+    fp:=utl_file.fopen('ABC','ENAME.txt','w');
+    for i in c2
+    loop
+    utl_file.putf(fp,'My Employee Is :-%s\n',i.ename);
+    end loop;
+   utl_file.fclose(fp);
+   end;
+/
+
+Note:-
+====
+-In oracle by using put_line procedure also we are allow to write data into an os file 
+-In this case we must pass file pointer variable as first parameter with in put_line procedure 
+Syntax:-
+=====
+	utl_file.put_line(filepointervarname,formate);
+
+  declare
+    fp utl_file.file_type;
+    cursor c2 is select * from emp;
+    begin
+    fp:=utl_file.fopen('ABC','EMPINFO.txt','w');
+    for i in c2
+    loop
+    utl_file.put_line(fp,i.ename||'  '|| i.job||'  '|| i.sal);
+    end loop;
+   utl_file.fclose(fp);
+   end;
+/
+
+SQL> declare
+    fp utl_file.file_type;
+    begin
+    fp:=utl_file.fopen('ABC','TEXTDEMO.txt','w');
+    utl_file.putf(fp,'First');
+    utl_file.putf(fp,'Second');
+    utl_file.fclose(fp);
+    end;
+output:-
+======
+FirstSecond
+
+SQL> declare
+    fp utl_file.file_type;
+    begin
+    fp:=utl_file.fopen('ABC','TEXTDEMO.txt','w');
+    utl_file.putf(fp,'First'||chr(10));---------->chr carraige return
+    utl_file.putf(fp,'Second');
+    utl_file.fclose(fp);
+    end;
+/
+output:-
+======
+First
+Seconds
+
+Note:-
+====
+-In oracle if you want to view path of logical directory then we are using all_directories 
+data dictionary
+ex.
+SQL> desc all_directories;
+ Name                                                       Null?    	Type
+ ----------------------------------------------------- -------- ------------------------------------
+ OWNER                                                 NOT NULL VARCHAR2(30)
+ DIRECTORY_NAME                                        NOT NULL VARCHAR2(30)
+ DIRECTORY_PATH                                                 VARCHAR2(4000)
+
+
+SQL> select directory_name,directory_path from all_directories;
+
+DIRECTORY_NAME         DIRECTORY_PATH
+----------------------------------------------------------------------------------------------------
+ABC                                                  D:/
+
+	READING data from an os File:-
+	======================
+-If you want to read data from an os file then we must use get_line procedure from utl_file package
+-Before we are using this procedure then we must used read mode (r) in fopen() function.
+Syntax:-
+======
+	url_file.get_line(filepointervarname,buffervarname);
+
+q.write a pl/sql program by using utl_file package which is used to read data from file1.txt 
+and also display that content from file.
+-
+declare
+    fp utl_file.file_type;
+z varchar2(200);
+    begin	
+    fp:=utl_file.fopen('ABC','TEXTDEMO.txt','r');
+    utl_file.get_line(fp,z);
+dbms_output.put_line(z);
+    utl_file.fclose(fp);
+    end;
+/
+FirstSecond
+PL/SQL procedure successfully completed.
+
+q.write a pl/sql program by using utl_file package read multiple data items from file to .txt and 
+then display content from file.
+
+SQL> declare
+  2      fp utl_file.file_type;
+  3  z varchar2(200);
+  4          begin
+  5      fp:=utl_file.fopen('ABC','EMPINFO.txt','r');
+  6  loop
+  7      utl_file.get_line(fp,z);
+  8  dbms_output.put_line(z);
+  9      end loop;
+ 10  exception
+ 11  when no_data_found then
+ 12     utl_file.fclose(fp);
+ 13     end;
+ 14  /
+Sandy    5100
+SMITH  CLERK  1000
+ALLEN  SALESMAN  1700
+WARD  SALESMAN  1350
+JONES  MANAGER  3075
+MARTIN  SALESMAN  1350
+BLAKE  MANAGER  2950
+CLARK  MANAGER  2750 
+SCOTT  ANALYST  3100
+KING  PRESIDENT  5300
+TURNER  SALESMAN  1600
+ADAMS  CLERK  1200
+JAMES  CLERK  1050
+FORD  ANALYST  3100
+MILLER  CLERK  1600
+
+PL/SQL procedure successfully completed.
+
+-when ever we are reading multiple data item from an os file by using an utl_file package
+-then oracle server return an error ORA-1403 No Data Found.when controlled reached end of file
+ to overcome this problem then we must handle  an exception by using
+no_data_found exception name..in exception setion of the pl/sql block.
+
+vvvvimp..***	SQL* LOADER
+		==========
+
+-Sql Loader is as utility program which is used to transfer data from flat file into Oracle database
+-SqlLoader tool is also called as bulk loader or perforamance loader.
+
+-Always sqlLoader tools executes control file thats why Based on the type of flat file we are creating controlling file then only we are submitting this 
+control file into SqlLoader tool,
+then only sqlLoader tools transfer data from flat file into oracle database.
+-during this process sqlLoader tool automatically created a log file.
+-This log file stores all other file information and also this log file stores loaded,rejected number 
+of record number and also this log file stores oracle error number,error massages.
+-Based on some reasons some record are rejected those rejected records are automatically
+stored in bad file,discard file.
+-
+
+Flat File:-
+======
+-Flat File is a structured file which contains number of records.
+-All databases having two types of Flat Files this are 
+	1.variable length record Flat File
+	2.Fixed Length record Flat File 
+
+1.Variable Length Record Flat File:-
+========================
+-A flat file which having delimiter(any special symbol) in between fields is called Variable Length
+record flat file
+ex:-
+==
+		101,abc,2000
+		102,xyz,5000
+		103,pqr,9000
+
+2.Fixed Length record Flat File:-
+======================
+-A flat file which does not have delimiter in beyween fields is called Fixed Length record flat file 
+ex:-
+==
+		101abc2000
+		102xyz5000
+		103pqr9000
+
+Control File(.ctl):-
+===========
+-SqlLoader only executes control files.This file extension is .ctl.
+-Based on the type of flat file we are creating controlling file then only we are submitting this 
+control file into SqlLoader tool.
+-Then only SqlLoader tool transfer data from flat file into oracle database 
+
+	Creating a Control File For Variable Length Record FlatFile:-
+	=========================================
+-Always control file executions start with load data clause.
+-Aftre load data clause then we must specifies path of the flat file by using infile clause.
+Syntax:-
+=====
+	load data 
+	infile  'path of flat file'
+-For loading data into oracle database then we must specifies into table tablename clause 
+and also based on type of data in oracle table then we are specifing either insert or append 
+or truncate or replace clauses in the above of the into table tablename clause.
+-here by default clause is insert clause.when ever oracle table is an empty table then only we are
+allow to use insert clause .
+  
+Syntax:-
+	insert /append/truncate/replace
+	 into table tablename
+
+-Based on the type of data in flatfile then we are using following clauses.after into table tablename
+clause.
+-This clauses are 
+	1)fields terminated by  'delimiter'
+	2)optionally enclosed by  'delimiter'
+	3)trailing nullcols
+ 
+-And last only we are specifing oracle table column with in paranthesis ' '.
+Control File Syntax:-
+==============
+		load data
+		infile 'path of flatfile'
+		badfile 'path of the flatfile'
+		discardfile 'path of the discardfile'
+		insert /append/truncate/replace
+		into table tablename
+		fields terminated by 'delimiter'
+		optionally enclosed by 'delimiter'
+		trailing nullcols
+		(col1,col2,col3.....,coln)
+
+Invoking SqlLoader:-
+==============
+start---->run---->cmd----->
+d:\>sqlldr	 userid=scott/Sandy220
+control=path of controlfile	
+
+-During this process SqlLoader tools automatically creates a log file as same name as control file 
+name.
+-This log file stores all other file information and also stores loaded,rejected number of record 
+number 
+-This log file also stores oracle error number,error massages  
+
+Note:-
+====
+-We can also specifies flafile records with in control file itself in this case we must used star in 
+place of path of flatfile with in infile clause.and also we must used begin data clause into the 
+above of the flatile data  with in control file
+
+	Constant,filler clauses are used in control file:-
+	=================================
+
+-By using SqlLoader If you want insert,default values into oracle database then we are using 
+constant clause with in control file 
+-When ever flatfile having less number of cloumns and also if oracle table required more number
+of columns then we are using constant clause 
+Syntax:-
+	colname constant 'defaultvalue'
+
+Filler:-
+====
+-If you want to skip columns from flatfile then we are using filler clause 
+Syntax:-
+=====
+	columnname filler 
+
+-Generally if flat file having more number of column and target table required less no of column 
+then only we are allow to used filler clause 
+
+Bad File:-
+======
+
+-Bad files stores rejected record this file extension is .bad .
+-SqlLoader tool automatically creates a bad file as same name as flat file name 
+
+Note:-
+====
+-We can also create bad file explicitly by specifing bad file clause with in control file 
+Syntax:-
+=====
+	badfile path of 'badfile'	
+-bad file stores rejected record based on following two situation this are 
+	1.datatype mismatch
+	2. business rule violation
+1.datatype mismatch:-
+================
+-
+
+Trailing Nullcols:-
+============
+-In Flat File when ever trailing column having null values then those record also rejected and also 
+those rejected records stored in badfile to overcome this problem if you want to stored those
+null values record in oracle database than we must used trailing nullcols with in control file
+
+Specifying bad file explicitly:-
+====================
+-file1.txtx
+101,abc
+'102'',xyz
+'103',pqr
+104,zzz
+
+step 2:-
+create table target(empno number(20),ename varchar2(20));
+
+ctl file
+
+load data
+infile 'd:\file.txt'
+badfile ''d:\file2.txt'
+---------------------------------s
+insert
+into table target
+fields terminated by ','
+(empno,ename)
+
+badfile 
+======
+file2.txt
+
+'102',xyz
+'103',pqr
+
+recnum:-
+======
+-recnum clause automatically assign numbers to the rows when we are transfering the data 
+into the sqlloader 
+-In this case it assign the number to loaded,rejected number of records 
+Syntax:-
+=====
+		columnname recnum
+file1.txt
+
+101,abc
+'102',xyz
+'103',pqr
+104,zzz
+
+create table target(empno number(10),ename varchar2(10),rno number(10));
+
+ctl file:=
+load data 
+inline 'd:\file1.txt'
+insert
+into table target 
+fields terminated by ','
+(empno,ename,rno recnum)
+
+output:-
+=====
+empno	ename	rno
+101	abc	1
+104	zzz	4
+
+Function are used in control file:-
+========================
+-We can also use oracle function with in control file 
+-In this case we must specify function functionallity in double cout and we also must used colon
+operator in front of column name with in function functionallity
+Syntax:-
+=====
+	columnname  "functionname(:colname)"
+
+-q.Devoloped a control file based on the following condition by using given flat file in this flat file if 
+last column is a gender column and then convert those values based on following condition
+1.if gender=m then convert into male
+2.if gender=f then convert into female 
+
+file1.txt
+
+101,abc,m
+102,xyz,f
+103,pqr,m
+104,zzz,f
+
+create table target(empno number(10),ename varchar2(10),gender varchar2(10));
+
+load data 
+infile 'd:\file1.txt'
+insert
+into table target 
+fields terminated by ','
+(empno,ename,gender "decode(:gender,'m','male','f','female')")
+
+output
+====
+empno	ename	gender
+101	abc	male
+102	xyz	female
+103	pqr	male
+104	zzz	female
+
+Dates are used in control file:-
+=====================
+-When ever flat file having date then we are allow to stores those dates in oracle database by 
+using following two methods this are
+
+method1:- Using to_data() function
+method2:-Using datetype
+
+method1:- Using to_data() function:-
+==========================
+Syntax:-
+	colname  "to_date(:colname,'flatfiledateformat')"
+
+file1.txt
+
+101,abc.120408
+102,xyz.240809
+
+create table terget(empno number(10),ename varchar2(10),col3 date);
+load data
+infile 'd:\file1.txt'
+insert
+into table target 
+fields termonated by ','
+(empno,ename,col3 "to_date(:col3,'ddmmyy')")
+
+output
+=====
+empno	ename	col3
+101	abc	12-apr-08
+102	xyz	24-aug-09
+
+Method2 using date type:-
+===================
+Syntax:-
+=======
+	columnname date "flatfile dateformate"
+ex.
+flatfile:-
+
+101,abc,120408
+102,xyz,240409
+
+table
+	create table target(empno number(10),ename varchar2(10),col3 date);
+
+ctl file
+
+load data 
+infile 'd:\File1.txt'
+insert 
+into table target
+fields terminated by ','
+(empno,ename,col3 date "DDMMYY")
+
+output:-
+=====
+empno	ename	col3
+101	abc	12-apr-08
+102	xyz	24-aug-09
+
+
+load data 
+infile 'd:\file1.txt'
+disardfile 'd:\file1.dsc'
+insert
+into table target
+when deptno='10'
+fields terminated by ','
+(empno,ename,deptno)
+
+
+
+create table target(empno number(10),ename varchar2(20),deptno number(10));
+
+output
+=====
+	empno	ename	deptno
+	101	abc	10
+	102	pqr	10
+	103	xyz	10	
+
+
+NOTE1:-WHEN condition values must be specify with in single coat 
+NOTE2:- In When clause we are not used other than =,<> relational operator 
+NOTE3:-In When clause we are not allow to used logical operator OR but we are allow to use
+	logical operator AND.
+
+Differnt delimiter are used in control file:-
+=============================
+
+-When flat file having defferent delimiters then we must use terminated by clause with in 
+control file by using following syntax::-
+Syntax:-
+=====
+	columnnname terminated by 'delimiter'
+
+flat file
+101,abc$2000^10
+102,pqr$6000^20 
+103,xyz$7000^10
+104,zzz$9000^30
+
+craete table target(empno number(10),ename varchar2(20),sal number(20),deptno number(10))
+
+ctl file
+
+load data 
+infile 'd:\file1.txt'
+insert 
+into table target
+fields terminated by  ','
+(empno termnated by ',',ename terminated by '$',sal terminated by '^',deptno)
+
+Skipping records from flatfile:-
+=====================
+-If you want to skip number of records from flat file then we are using following with in
+ options clause 
+-This options clause used in the above of the load data clause with in control file 
+Syntax:-
+=====
+	options (skip=any number)
+	load data 
+
+
+flat file
+
+101,xyz
+102,abc,
+103,pqr
+104,zzz
+
+target table
+create table target(empno number(10),ename varhar2(10));
+
+ctl file
+
+options(skip=2)
+load data
+infile 'd:\File.txt'
+insert
+into target 
+fields terminated by ','
+(empno,ename) 
+
+output
+====
+SQL>     select * from target;
+	empno	ename
+	103	pqr
+	104	zzz
+
+Sequences are used in control file:-
+=========================
+-We an also use sequences in control file by using following syntax
+Syntax:-
+=====
+	columnname "sequencename.nextval"
+ex.
+flat file
+101
+102
+103
+104
+105
+
+ target table 
+SQL>create table target(sno number(10));
+
+SQL>create sequence s1;
+
+control file
+=======
+load data 
+infile 'd:\File1.txt'
+insert 
+into table target 
+fields terminated by ','
+(sno "s1.nextval")
+
+OutPut
+=====
+SQL>select * from target;
+	sno
+	1
+	2	
+	3
+	4
+	5
+
+Creating Control File for Fixed Length Record FlalFile:-
+======================================
+-A FlatFile does not have delimeter in between fields is called fixed length record flatfile 
+-When resource as fixed length record flatfile then we must use position clause with in control file 
+-In this position clause we must specify starting,ending position of every fields by using ':' operator 
+-Along with position clause we can also use SqlLoader datatype for improve performance of the 
+control file 
+-SqlLoader having following datatypes this are 
+	1.integer external   
+	2.char 
+	3decimal external 
+Syntax:-
+=====
+	columnname position(startingposition:ending position) sqlloaderdatatype
+
+Note:-
+====
+-When ever we are using functions or expressions then we must specify those function functionallty
+in plae of sqlloader datatype
+Syntax:-
+=====
+	columnname position(startingposition:endingposition) "functionname(:colname)" 
+
+ex.
+Flatfile
+101abc4000
+102pqr8000
+103xyz9000
+
+target table
+SQL>create table target(empno number,ename varchar2(10),sal number(10));
+
+ControlFile
+========
+load data 
+infile 'd:\File1.txt'
+insert
+into table target
+(empno position(01:03) integer external,
+ ename position(04:06) char,
+ sal position(07:10) integer external)
+	or
+oad data 
+infile 'd:\File1.txt'
+insert
+into table target
+(empno position(01:03) ,
+ ename position(04:06) ,
+ sal position(07:10) )
+
+output
+====
+SQL>select * from target;
+	empno	ename	sal
+	101	abc 	4000
+	102	pqr	8000
+	103	xyz	9000
+
+Loading Data into multiple table:-
+========================
+-By using sqlloader we can also transfer single flat file data into multiple orale table by using 
+number of into table tablename clauses with in control file 
+ex.
+flatfile
+101abc200010
+102pqr500020
+103xyz700030
+104zzz900040
+
+target table 
+SQL>create table target1(empno number(10),ename varchar2(10),sal number(10));
+
+SQL>create table target2(empno number(10),deptno number(10));
+
+control file
+========
+load data 
+infile 'd:\File1.txt'
+insert 
+into table target1
+(empno position(01:03),
+ ename position(04:06),
+  sal position(07:10))
+into table target2
+(empno position(01:03),
+ deptno position(11:13))
+
+
+Ans Of  ScreenShot VVVIMP.
+
+load data 
+infile 'd:\File1.txt'
+insert 
+into table target
+(sno  "s1.nextval",
+ value constant 50 ,
+  time "to_char(sysdate,'HH:MI:SS)",
+ col1 position(01:05) ":col1/100",
+col2 position(06:13) "upper(:col2)",
+col3 position(14:19) "to_date(:col3,'ddmmyy')" )
+
+note:-
+====
+-In SqlLoader we are not allowed to use colon operator i.e : along with sysdate,userfunctions
+
+note:-
+===
+-By using SqlLoader tool we can also tarnsfer no.of flat file data into single oracle table by using 
+no.of infile clause with in control file and also by using SqlLoader we are transfering single flat file
+into no.of oracle table by using no.of into table clause.
+-But  resource has different database data and also if resource has combination of flat file,database
+data,then we are not allow to use SqlLoader tool.
+-In this case we are using etl tools.
+
+
+				TRIGGER
+				=======
+-Trigger is also same as stored procedure and it will automatically involved  when ever DML 
+operation performed on table or view.
+-Oracle having two types of trigger i.e
+	1.statement level triggers
+	2.row level triggers
+-Statement level triggers trigger body executed only once for Dml statement where as 
+in row level triggers trigger body execute for each row for Dml statement 
+-In oracle every trigger having two parts this are 
+	1.trigger specifiaction
+	2.trigger body
+Trigger Syntax:-
+==========
+	create or replace trigger triggername 
+	before/after insert/update/delete in table name 
+	[for each row]
+	[when condition]
+	[declare]
+	------>declaring a variable,cursors 
+	        user defined exceptions;
+	begin
+	-----------------
+	-----------------
+	end;
+	/
+-Difference between statement level trigger and row level trigger:-
+==============================================
+
+-Statement level trigger:-
+=================
+SQL> create or replace trigger t1
+    after update on emp
+    begin
+    dbms_output.put_line('Statement level trigger');
+    end;
+   /
+Trigger created.
+
+Testing:-
+======
+SQL> update emp set sal=sal+100 where deptno=10;
+Statement level trigger
+
+3 rows updated.
+
+SQL> drop trigger t1;
+Trigger dropped.
+
+Row Level Trigger:-
+=============
+SQL> create or replace trigger t2
+    after update on emp
+    for each row
+    begin
+    dbms_output.put_line('Row level trigger');
+    end;
+   /
+Trigger created.
+
+Testing
+=====
+SQL> update emp set sal=sal+100 where deptno=10;
+Row level trigger
+Row level trigger
+Row level trigger
+
+3 rows updated.
+
+Purpose of the database triggers:-
+========================
+-In all relational databases triggers are used in following purpose this are
+	1.prevent invalid data or transactions
+	2.auditing 
+	3.enforcing complex referential integrity
+	4.logging 
+	5.providing secuirity fot data 
+
+
+Row Level Triggers:-
+==============
+-In row level triggers trigger body is executed for each for dml statement thats why we must use 
+for each clause in trigger specification and als,In oracle when we are using row level trigger then 
+Dml transaction valiues are internally automaticaly stored in two buffer this are 
+		1.:OLD
+		2.:NEW
+-This bufferd are used in either trigger specifiation or in trigger body by using following syntax
+Synatx:-
+=====
+	:old.columnname
+Synatx:-
+=====
+	:new.columnname
+
+write a pl/sql row level trigger on emp table when ever user insertung data into emp
+ table then inserted employee sal should be more than 5000
+Ans:-
+create or replace trigger tg2
+    after insert on emp
+    for each row
+    begin
+    if :new.sal<5000 then
+    raise_application_error(-20123,'salary should be more than 5000');
+    end if;
+    end;
+    /
+Testing
+=====
+SQL> insert into emp(empno,ename,sal) values(1,'abc',2000);
+insert into emp(empno,ename,sal) values(1,'abc',2000)
+            *
+ORA-20123: salary should be more than 5000
+
+SQL> insert into emp(empno,ename,sal) values(1,'abc',8000);
+1 row created.
+
+Concept Of :Old and :new keywords of a row level trigger:-
+=========================================
+-Row level trigger has a capability to access both old and new values of a column by using 
+:old,:new keywords 
+
+updation:-
+=======
+screen shot 
+
+insertion:-
+=======
+screen shot
+deletion:-
+=======
+screen shot
+
+
+							13/10/2020
+
+	Trigger Timing(before/after)
+	====================
+-Always oracle having two types of timing points in triggers i.e befire and afetr 
+-Based on the exicution of the trigger body,triggering statements.This are 
+	1.before timing 
+	2.after timing 
+
+1.before timing:-
+============
+-When ever we are using before timing trigger body is executed first the only DML statements are
+executed i.e when ever we are submitting DML statement this transaction are not affected directly 
+in oracle database i.e before this transactions are affected in database.
+-First those transaction affected in trigger code thats why in oracle when er are assinging values 
+into    : new qualifier in row level trigger then we must used before timing otherwise oracle server 
+return an error can not change new values for this trigger type.
+Synatx:-
+======
+	SQL>begin
+	         :new.colname:=value;
+	         end;
+
+screen shot daigram:-
+
+Note:-
+====
+-Before trigger executes the trigger action before the triggering statement
+-By using before trigger you can eleminate unnassesary proccessing of the triggering statement 
+
+Note:-
+====
+-Generally in all relational databases if you want to privent DML oerations on a table based on 
+condition then we must used before timing.
+
+Query:-
+=====
+Write a pl/sql row level trigger on emp table when ever user inserting data into ename column 
+then user inserted data is automatically converted into upper case in ename column 
+Ans:-
+SQL> create or replace trigger tr1
+   before insert on emp
+   for each row
+   begin
+   :new.ename:=upper(:new.ename);
+   end;
+   /
+
+Trigger created.
+Testing
+=====
+SQL> insert into emp(empno,ename) values(1,'murali');
+
+1 row created.
+
+SQL> select * from emp;
+
+     EMPNO     ENAME      
+        10           Sandy                                   
+         1           MURALI	
+
+Note:-
+====
+-In oracle :new buffer also reresents erticular cell in table columns 
+screen shot 
+
+		after timing:-
+		=========   
+
+-After trigger execute the trigger action after the triggering statement is executed
+-After trigger are used when we want to the triggering statement to comlete before execution
+in the trigger action i.e when ever we are using after timing then trigger code is executed after DML 
+statement execution.i.e when ever we are using after timing then DML transaction values are 
+directlly affected into the database.then only those transaction are affected in trigger code 
+
+Note:-
+====  
+-Generally in oracle one table transaction values are affetced into another table then only we are
+allow to use after timing.
+
+
+SQL>  create or replace trigger t1
+  2      after insert on Student
+  3      for each row
+  4      begin
+  5      insert into target values(:new.stno,:new.sub1+:new.sub2+:new.sub3,(:new.sub1+:new.sub2+:new.sub3)/3);
+  6      end;
+  7      /
+
+Testing:-
+======
+SQL> insert into Student values(1,30,20,50);
+SQL> insert into Student values(2,10,30,40);
+SQL> insert into Student values(3,40,40,50);
+
+SQL> select * from Student;
+      STNO       SUB1       SUB2       SUB3
+---------- ---------- ---------- ----------
+         1         30         20         50
+         2         10         30         40
+         3         40         40         50
+
+SQL> select * from target;
+      STNO      TOTAL        AVG
+---------- ---------- ----------
+         1        100         33
+         2         80         27
+         3        130         43
+
+3.Implementing Business rule:-
+======================
+Q.write a pl/sql row level trigger on emp table applying following buisness rule
+Business rule:-
+==========
+Compny does not allow any bonus to job as clerks 
+Ans:-
+===
+SQL> create or replace trigger tr1
+  2  before insert on emp
+  3  for each row
+  4  when(new.job='CLERK')
+  5  begin
+  6  if :new.comm is not null then
+  7  :new.comm:=null;
+  8  end if;
+  9  end;
+ 10  /
+
+Trigger created.
+
+Testing:-
+=====
+SQL> insert into emp(empno,ename,job,comm)values(1,'ABCS','CLERK',300);
+1 row created.
+SQL> insert into emp(empno,ename,job,comm)values(2,'PQRS','MANAGER',400);
+1 row created.
+SQL> select * from emp;
+     EMPNO ENAME      JOB              MGR HIREDATE         SAL       COMM     DEPTNO
+---------- ---------- --------- ---------- --------- ---------- ---------- ----------
+        50 Sandy                                           5100        200
+         1 ABCS       CLERK
+         2 PQRS       MANAGER                                          400		
+
+	Statment Level Triggers:-
+	==================
+-In Statement level  triggers trigger body executed only once per DML statement 
+-In oracle statement level trigger does not have old,new qualifiers and also in statement level 
+triggers we are not allow to use for each row clause
+-Generally In all realtional databases if you want to impliment time component base application 
+in triggers then we must used statement level trigger.
+q.write a pl/sql statement level trigger on emp table not allow to perform DML operation on 
+saturday and sunday .
+Ans:-
+SQL> create or replace trigger tr1
+  2      before update or insert or delete on emp
+  3      begin
+  4      if to_char(sysdate,'dy')in('sat','sun') then
+  5      raise_application_error(-20123,'we can perform DML operation on saturday and sunday');
+  6      end if;
+  7      end;
+  8     /
+
+Trigger created.
+
+Testing:-
+======
+SQL>delete from emp where sal>2000;
+ORA-20123:-we can not perform dml operation on saturday and sunday 
+
+Note:-
+====
+-In oracle we are not allow to used when clause in statement level triggers
+ex.
+       create or replace trigger tr1
+        before update or insert or delete on emp
+      when( to_char(sysdate,'dy')in('sat','sun') )
+        begin
+       raise_application_error(-20123,'we can perform DML operation on saturday and sunday');
+       end;
+      /
+Error:-When clause cannot be used with table level triggers 
+
+ create or replace trigger tr1
+        before update or insert or delete on emp
+         for each row
+        when( to_char(sysdate,'dy')in('sat','sun') )
+        begin
+       raise_application_error(-20123,'we can perform DML operation on saturday and sunday');
+       end;
+      /
+
+Note1:-
+=====
+-In oracle we can also convert statement level trigger into row level triggers and also convert row level
+triggers into statement level trigger with out using old,new qualifiers.
+
+Note2:-
+=====
+-In all relational databases by default statement level trigger performance is very high 
+
+
+
+
+Q.write a pl/sql statement level trigger on emp table not allow to insert DML operation on last day 
+of the month:-
+ create or replace trigger tr1
+    before insert or update or delete on emp
+    begin
+    if sysdate=last_day(sysdate) then
+    raise_application_error(-20123,'we cannot perform DML operation in last date of the mnth');
+    end if;
+    end;
+    /
+SQL>delete from emp where sal>2000;
+ORA-20123,'we cannot perform DML operation in last date of the mnth 
+=======================================================
+***Generating alpha numeric data as primary key in auto-increment concept 
+			(or)
+***Using varchar2 datatype column in auto increment:-
+=======================================================
+ SQL> create table test(sno varchar2(20)primary key,name varchar2(10));
+
+Table created.
+
+
+SQL> create sequence s11;
+
+Sequence created.
+
+create or replace trigger tt1
+    before insert on test
+    for each row
+    begin
+    select 'ABC'||lpad(s11.nextval,10,'0') into :new.sno from dual;
+    end;
+    /
+Testing:-
+======
+SQL> insert into test(name)values(&name);
+Enter value for name: 'ABC'
+old   1: insert into test(name)values(&name)
+new   1: insert into test(name)values('ABC')
+
+1 row created.
+
+SQL> /
+Enter value for name: 'PQR'
+old   1: insert into test(name)values(&name)
+new   1: insert into test(name)values('PQR')
+
+1 row created.
+
+SQL> /
+Enter value for name: 'WWW'
+old   1: insert into test(name)values(&name)
+new   1: insert into test(name)values('WWW')
+1 row created.
+
+SQL> select * from test;
+SNO                              NAME
+-------------------- ----------
+ABC0000000001        ABC
+ABC0000000002        PQR
+ABC0000000003        WWW
+
+Execution order of the trigger:-
+======================
+-All relational databses having following default execution order in trigger this are:-
+	1.before statement level 
+	2.before row level 
+	3.after row level(vvvvvIMP) 
+	4.after statement level
+
+
+SQL> create table test(sno number(10));
+
+Table created.
+
+-SQL> create or replace trigger tr1
+  2  after insert on test
+  3  for each row
+  4  begin
+  5  dbms_output.put_line('after row level');
+  6  end;
+  7  /
+
+Trigger created.
+SQL> create or replace trigger tr2
+  2  before insert on test
+  3  begin
+  4  dbms_output.put_line('before statement level');
+  5  end;
+  6  /
+
+Trigger created.
+SQL> create or replace trigger tr2
+  2  before insert on test
+  3  begin
+  4  dbms_output.put_line('before statement level');
+  5  end;
+  6  /
+
+Trigger created.
+Testing:-
+======
+SQL> insert into test values(10);
+before statement level 
+before row level
+after row level
+after statement level
+1 row created.
+
+FOLLOWS CLAUSE(11g):-
+=================
+-Oracle 11 g introduced follows clause 
+-Genereally we can controlled execution order of the triggers when we are same level of trigger 
+on same level of trigger on same table to overcome thios problem oracle 11g introduced follows
+clause in trigger 
+-Follows clause is used in trigger specification by using follows clause we can also control 
+execution order of the trigger explicitly when we are using same level of triggers on same table 
+-Follows clause provides gaurenty execution order of the trigger when we are using same level of 
+triggers on same table 
+Syntax:-
+=====
+	create or replace trigger triggername
+	before/after delete/insert/update on tablename
+	[for each]
+	[when condition]
+	[follows anothertriggername]
+	[declare]
+	...............
+	begin
+	...........
+	end;
+	/
+EX.
+SQL> create table test(col1 number(10),col2 number(10),col date);
+Table created.
+
+SQL> create sequence s1
+  2  start with 1234;
+Sequence created.
+
+create or replace trigger tg1
+before insert on test
+for each row
+begin
+:new.col1:=s1.nextval;
+dbms_output.put_line('trigger1 is fired');
+end;
+/
+
+- create or replace trigger tg2
+before insert on test
+for each row 
+begin 
+select reverse(to_char(:new.col1)) into :new.col2 from dual;
+dbms_output.put_line('trigger2 is fired');
+end;
+/
+Testing:-
+======
+SQL> insert into test(col) values(sysdate);
+trigger2 is fired
+trigger1 is fired
+
+1 row created.
+
+SQL> select * from test;
+
+      COL1       COL2    COL
+---------- ---------- ---------------------
+      1234                17-OCT-20
+
+Solution:
+======
+SQL> create table test(col1 number(10),col2 number(10),col date);
+Table created.
+
+SQL> create sequence s1
+  2  start with 1234;
+Sequence created.
+
+create or replace trigger tg1
+before insert on test
+for each row
+begin
+:new.col1:=s1.nextval;
+dbms_output.put_line('trigger1 is fired');
+end;
+/
+
+create or replace trigger tg2
+before insert on test
+for each row 
+follows tg1
+begin 
+select reverse(to_char(:new.col1)) into :new.col2 from dual;
+dbms_output.put_line('trigger2 is fired');
+end;
+/
+Testing:-
+======
+SQL> insert into test(col) values(sysdate);
+trigger1 is fired
+trigger2 is fired
+
+1 row created.
+
+SQL> select * from test;
+
+      COL1       COL2    COL
+---------- ---------- ---------
+   1235       5321    17-OCT-20
+
+Compound Trigger:-
+==============
+-Oracle 11g introduced compound trigger
+-Compound trigger allows difference block with in trigger to a executed  at a different timing point
+-Compound trigger also having global declaration section same like a packages 
+-Compound trigger is an DML trigger
+Syntax:-
+=====
+	create or replace trigger triggername
+	for insert/update/delete on tablename
+	compound trigger
+	       ------>declaring global varible
+	before statement is
+	begin
+	-----------
+	-----------
+	end[before statement];
+	before each row is
+	begin
+	----------
+	----------
+	end[before each row];
+	after each row is
+	begin
+	----------
+	----------
+	end[after each row];
+	after statment is
+	begin
+	----------
+	----------
+	end[after statement];
+	after rach row is
+	begin
+	---------
+	---------
+	end[after each row];
+	end;
+	/
+
+Query:-write apl/sql compounf trigger in oracle 11g which is used to display befault execution  
+order of the trigger:-
+Ans:-
+SQL>  create or replace trigger th1
+  2     for insert on test1
+  3     compound trigger
+  4     before statement is
+  5    begin
+  6     dbms_output.put_line('Before statement levke trigger');
+  7     end before statement;
+  8     before each row is
+  9     begin
+ 10     dbms_output.put_line('Before Row level trigger');
+ 11     end before each row;
+ 12     after each row is
+ 13     begin
+ 14     dbms_output.put_line('after Row level trigger');
+ 15     end after each row;
+ 16   after statement is
+ 17     begin
+ 18     dbms_output.put_line('after statement level trigger');
+ 19     end
+ 20     after statement;
+ 21     end;
+ 22     /
+
+Trigger created.
+Testing:-
+======
+SQL> insert into test1 values(5);
+Before statement levke trigger
+Before Row level trigger
+after Row level trigger
+after statement level trigger
+
+1 row created.
+
+Instead Of Trigger:-
+=============
+-Oracle 8i introduced instead of trigger 
+-Instead of triggers are created on views by default instead of trigger are row level triggers
+-Generally we can not perform DML operation through complex view to base table to overcome
+this problem oracle 8i introduced instead of trigger in pl/sql
+-By using instead of trigger we can convert non updatable views into updatable views.
+Syntax:-
+======
+	craete or replace trigger triggername
+	instead of insert/update/delete on viewname
+	for each row
+	[declare]
+	---------------
+	begin
+	----------
+	end;
+	/ 
+	
+SQL>create table test1(name varcha2(10));
+SQL> create table test2(subject varchar2(10));
+
+Table created.
+
+SQL> create or replace view v1
+  2  as
+  3  select name,subject
+  4  from test1,test2;
+View created.
+
+SQL> insert into v1(name,subject)values('Sandip','Java');
+ORA-01779: cannot modify a column which maps to a non key-preserved table
+
+SQL> desc user_updatable_columns;
+
+SQL> select column_name,insertable
+  2  from user_updatable_columns
+  3  where table_name='V1';
+
+COLUMN_NAME                    INS
+------------------------------ ---
+NAME                           NO
+SUBJECT                        NO
+
+incompleted.
+
+
+When Clause Use In Trigger:-
+====================
+-In oracle we can also use logical condition with in trigger specification by using when clause.
+-When condition always improves performance of the trigger but when clause used in row level
+triggers only 
+Syntax:-
+=====
+	when(condition)
+-here when condition must be an sql expression.
+-here when condition always return boolean values either true or false 
+-when ever condition is true then only trigger body is exicuted where as when ever when condition
+return false the trigger body is never executed 
+ Note:-
+====
+-In oracle we are not allow to used : in front of the old,new qualifier in when clause.
+SQL> create or replace trigger tj1
+    after insert on emp
+    for each row
+    when(new.empno=1)
+    begin
+    dbms_output.put_line('when empno=1 then only trigger body is executed');
+end;
+/
+Testing
+======
+SQL> insert into emp(empno)values(1);
+when empno=1 then only
+ trigger body is executed
+1 row inserted.
+
+Triggering events (or) trigger predicate clause:-
+=================================
+-In oracle if you want to perform number of operation on multiple tables with in trigger body then
+we are using triggering events with in trigger body 
+-This triggering events are inserting,updating,deleting clauses
+-This clauses also called as trigger predicate clauses.
+-This clauses are used in either in statement level trigger or in row level triggers.
+Syntax:-
+=====
+	if inserting then
+	statement;
+	elseif updating the
+	statement;
+	elseif deleting then
+	statement;
+	end if;
+
+-q.Write a pl/sql statement level trigger on emp table not allow to perform DML operations 
+in any days by using triggering events?
+Ans:-
+create or replace trigger ta2
+   before insert or update or delete on sandy
+   begin
+   if inserting then
+   raise_application_error(-20123,'we cannot perform inserting');
+   elseif updating then
+   raise_application_error(-20345,'we can not perform updation ');
+   elseif deleting then
+   raise_application_error(-20287,'we can not perform deletion');
+   end if;
+   end;
+   /
+
+comiplation prblm.
+
+ex2.
+SQL> create or replace trigger ta4
+   after insert or update or delete on sandy
+   declare
+   z varchar2(10);
+   begin
+   if inserting then
+   z:='row inserted';
+   elseif updating then
+   z:='row updating';
+   elseif deleting then
+   z:='row deleted';
+   end if;
+   insert into demo values(z);
+   end;
+   /
+Testing:-
+=====
+compilation prblm.
+
+
+=======================================================================
+
+Commit Command used in trigger:-
+========================
+-In oracle we can also used commit command in trigger but in this case oracle server returns an
+runtime error 
+-ORA-04092 cannot commit in a trigger
+-to overcome this problem if you want to use commit command in triggers then we must used 
+autonomous transaction in trigger 
+-If you want make a trigger is autonoous then we use autonomous_transaction pragma in declare
+section of the trigger by using following syntax
+Syntax:-
+=====
+	pragma autonomous_transaction;
+
+-autonomous transaction are independent transaction and also those transacion are nevr affected
+from the main transaction rollback or commit command.
+
+Q.Write a pl/sql row level trigger 
+Ans:-
+SQL> create table test1(sno number(10));
+
+Table created.
+
+SQL> create or replace trigger tj1
+    after insert on sandy
+    for each row
+    begin
+    insert into test1 values(:new.empno);
+    commit;
+    end;
+    /
+
+Trigger created.
+Testing:-
+======
+SQL> insert into sandy(empno) values(5);
+error:-
+ORA-04092;cannot COMMIT in a trigger
+
+Solution:-
+======
+SQL> create or replace trigger tj1
+   after insert on emp
+    for each row
+    declare
+    pragma autonomous_transaction;
+    begin
+    insert into test1 values(:new.empno);
+    commit;
+    end;
+    /
+
+SQL>insert into emp(empno) values(5);
+SQL>select * from test1;
+SQL>rollback;
+SQL>select * from test1;
+SQL>select * from emp;
+Q.Write a pl/sql trigger on emp table when ever user deleted row from emp table then automaticall
+y display remaining records number at a bottem of delete statement after deleting records from emp table.
+ANS:-
+SQL> create or replace trigger t1
+    after delete on emp
+    declare
+    z number(10);
+    begin
+    select count(*) into z from emp;
+dbms_output.put_line(z);  
+  end;
+    / 
+Testing:-
+======
+SQL> delete from emp where empno=1;
+17
+
+at row level
+SQL> create or replace trigger t2
+    after delete on emp
+    --------	             --------
+    for each row
+    -------------------
+    declare
+    z number(10);
+    begin
+    select count(*) into z from emp;
+		                --------
+dbms_output.put_line(z);  
+  end;
+    / 
+testing:-
+=====
+SQL> delete from emp where empno=1;
+error:
+ORA04091: table SCOTT.EMP is mutating
+
+Mutating Error:-
+===========
+In oracle if row lelvel trigger  based on a table then trigger body cannot read data from same table
+and also we cannot perform DML operation on same table when we are trying this then oracle 
+server returns an error ORA-04091 table is mutating.
+this error is also called as mutating error and also this table is also called as mutating table
+-mutating error is an runtime error occured in row level triggers only this error does not occured 
+in statement level trigger
+ 
+- Mutating error is an run time error occured in row level triggers only this error does not occured 
+in statement level trigger.
+-In oracle when ever we are using statement level trigger then DML transaction values are 
+internally automatically commited when ever we are try to read this commited data by using
+trigger body then oralce server does not return any run time error thats why statement level 
+trigger does not return any mutating error 
+-When ever we are using row level trigger and also when we are using DML transaction then 
+in row level trigger DML transaction values are not commited automatically thats why those 
+transaction affected into the buffer i.e those transaction are not completed and also 
+when we are try to read those transaction from same table by using row level trigger body then 
+deadlock is occured 
+-because here one transaction try to write in any database  and another transaction try to read 
+data from database at a tie thats why here one transaction depends on another transaction
+thats why here oracle server returns mutating error because of deadlock for avoiding mutating
+error them first we make it those transaction are independent by using autonomous transaction
+in trigger 
+-If you want to make a trigger is autonomous then we are using autonomous_transaction pragma 
+with in declare section of the trigger
+-And also we must used commit,rollback command in trigger body. 
+Synatx:-
+======
+pragma autonomous_transaction;
+Syntax:-
+=====
+create or replace trigger triggername 
+before/after insert/update/delete on tablename
+[for each row]
+[when condition]
+declare
+pragma autonomous_transaction;
+begin
+---------
+commit/rollback;
+end;
+/
+
+-Autonomous transaction automatically avoid mutating error because when we are using 
+autonomous transaction then deadlock are never occured 
+-Autonomous transaction trigger does not depend on DML transaction  
+-Autonomous transaction automatically avoid mutating error also those transaction does not 
+give correct result because always autonomous transaction retrive previous commited data
+i.e by default autonomous transaction does not view uncommited data  
+Solution:-(by using autonomous transaction)
+========
+SQL>create or replace trigger tv2
+after delete on emp
+for each row 
+declare 
+v_count number(10);
+pragma autonomous_transaction;
+begin
+select count(*) into v_count from emp;
+commitl
+bms_output.put_line(v_count);
+end;
+/
+Testing:-
+=====
+SQL>delete from emp where mpno=7788;
+13
+1 row deleted;
+SQL>delete from emp where mpno=7369;
+13
+1 row deleted;
+
+DDL Triggers (or) System Trigger:-
+=======================
+-In oracle we can also implement triggers based on DDL events these type of trigger are also 
+called as ddl triggers  or system trigger.
+-In oracle system triggers are created by  database administrator only
+-In oracle system trigger are created either in schema level or in database leve
+-for system triggers oracle provided predefine event attribute functions these are 
+ora_dict_obj_owner,
+ora_dict_obj_type,
+ora_dict_obj_name....;
+Syntax:-
+=====
+create or replace trigger triggername 
+before /after 
+craete/alter/drop/truncate/rename on username.schema/database
+[declare]
+---------------
+begin
+---------------
+end;
+/
+
+Query.write a pl/sql ddl trigger on scott schema not allow to drop emp table ?
+Ans:-
+create or replace trigger tv1
+before drop on scott.schema
+begin
+if ora_dict_obj_name='EMP' and
+ora_dict_obj_type='TABLE' then 
+raise_application_error(-20123,'We Cannot Drop Emp Table');
+
+end if;
+end;
+/
+Trigger created.
+
+Testing:-
+======
+SQL> drop table emp;
+ORA-20123: We Cannot Drop Emp Table
+
+Query. write a pl/sql ddl trigger om database level not allowes to create any database object in 
+oracle database?
+Ans:-
+ SQL> conn sys as sysdba
+Enter password:
+Connected.
+
+SQL>create or replace trigger tt1
+before create on database 
+begin
+raise_application_error(-20123,'not allow to crearte any database');
+end;
+/
+
+Testing;
+======
+SQL>create table z1(sno number(10));
+SQL> create table z1(sno number(10));
+
+ORA-20123: not allow to crearte any database object 
+
+-Oracle having 12 types of dml triggers based on statement level,row level,before,after,insert,
+update,delete statements and also oracle supports system triggers same like all relational 
+databases and also oracle supports instead of triggers on views.
+
+enable/disable triggers:-
+=================
+-In oracle by using alter command we can also enabled or disabled single trigger at a time or we can also 
+enabled or disabled all triggers in table at a time by using following syntaxes.
+
+Enabled or Disabled a single trigger:-
+==========================
+Syntax:-
+	alter trigger triggername enable/disabled;
+
+
+Enable/Disable all trigger at a time in table:-
+===============================
+ 
+alter trigger triggername enable/disable 
+all triggers;
+
+ex.
+SQL>conn scott/Sandy220;
+SQL>alter table emp disable all triggers;
+Table alterd.
+
+Avoiding Mutating error by using compound trigger:-
+=====================================
+Qeury>Write a pl/sql row level trigger on emp table number of employees in any department in emp
+table is restricted to not more than four .
+Ans:-
+create or replace trigger tp11
+after insert on emp
+for each row
+declare
+v_count number(10);
+begin
+select count(*) into v_count from emp
+where deptno=:new.deptno;
+if v_count>4 then 
+raise_application_error(-20123,'limit exceeded');
+end if;
+end;
+/
+Testing
+=====
+SQL>insert into emp(empno,ename,deptno) values(123,'Sandip',10);
+ORA-04091: table SCOTT.EMP is mutating.
+
+-Mutating error is an run time error occured in row level trigger only 
+-A row level trigger based on table them trigger body can not read the data from same table 
+-In above example user inserting data is storing into the buffer and also this data is not commited
+in oracle database and also during this process trigger body try to read same data from same table 
+ thats why here deadlock is occured  beacuse one transaction depends on another transaction 
+based on enternal deadlock machanism oracle server return mutatiing error
+for avoiding mutating error then oracle provided following three step proccess by using package 
+globble variable this steps are 
+
+Step1:- create package global variable. 
+Step2;-create after row level trigger 
+Step3:-create after statement level trigger 
+
+-In this method first we are creating global variable by using package specification and then by using 
+after row level trigger load data into global variable and then only use this global  variable data 
+in the our task by using after statement level trigger 
+
+Solution:-
+=======
+ex.
+STEP1:create packaged global variable 
+============================
+SQL>create or replace package pj1
+is
+g number(10);
+end;
+/
+
+STEP 2 create after row level trigger
+==========================
+SQL>create or replace trigger tg1
+after insert on emp
+for each row
+begin
+pj1.g=:new.deptno;
+end;
+/
+STEP 3 create after statement level trigger 
+==============================
+SQL>create or replace trigger tg2
+after insert on emp
+declare
+v_count number(10);
+begin
+select count(*) into v_count frpm emp 
+where deptno=pj1,g;
+if v_count>4 then
+raise_application_error(-20123,'limit exceeded');
+end if;
+end;
+/
+
+Testing:-
+=====
+SQL>insert into emp(empno,ename,deptno)values(1234,'Sandykarhale',10);
+ORA-20123:limit exceeded.
+
+-In oracle we can also drop a trigger by using 
+Syntax:-
+	drop trigger trigername;
+
+-In oracle all trigger information store under user_trigger
+
+SQL>desc user_triggers;
+
+Oracle External table(VVVIMP):-
+======================
+-External tables are read only table which is used to transfer data from an external file into 
+oracle database 
+-we can not perform insertion,updation,deletion opration in external table..
+-External table are used in ETL process with in data ware housing application.
+-When ever we are trasfering a data by using external table then external file must be avilable 
+with in same location of the oracle database 
+-Generally we can also perform joins in this external tables when we are using ETL proccess
+-before we are tranfering data from external file into oracle databse then we must create alias
+directory related to physical directory by using folloing syntax
+-Syntax:-
+======
+	create or replace directory directoryname 
+	as 'path';
+
+-Before we are creating alias directory then databse administrator must gives create any directory
+system privilege to user by using following syntax.
+
+Syntax:
+=====
+	grant create any diretory to username;
+
+In oracle if u want to view this directory and related path then we are using all_directory data dictionary 
+
+-If you want to create external table then we are using organiation,external statement 
+along eith tanle
+-This organization external having  following partameters 
+-This parameters are tight,default directory,access parameters,location.
+External table Syntax:-
+================
+	create table tablename(col1 datatype(size)),xol2)...)
+	  organization external
+	(type oracle_loader 
+	default directory directoryname
+	access parameters (fields terminated by 'delimiter')
+	location('file name' ))
+;
+
+-Here types dertermines te the type of the external table oracle provided 2 types of drivers
+for external tables this are 
+1.oracle_loader
+2.oracle_datapump
+-oracle_loader access driver is a default driver
+-this driver onlu loads data flate files into oracle database ie it loads data from external table into 
+internal table i.e it cn not unload the data i.e it can not move data from internal table into the external table 
+-Oracle_datapump driver can perform both loads and unloads but it requires data in binay dump file
+formate
+-oracle_datapump used by database administrator only.
+SQL>conn sys as sysdba
+sys
+SQL>grant create any directory to scott;
+SQL>conn scott/Sandy220
+SQL>create or replace directory XYZ as 'd:\';
+SQL>desc all_directories;
+SQL>create table emp_ext
+    (empno number(10),ename varchar2(10),sal number(10))
+    organization external
+    (default directory XYZ
+    access parameters(fields terminated by ',')
+   location('file1.txt'));
+
+Limitation on external tables:-
+=====================
+1.We can not perform insert,update,delete operations on external tables.
+2.We can not craete indexes on external tables 
+3.We can not create constrains on external table 
+
+Benifits on external tables:-
+===================
+1.We can also join external tables
+2.We can also create views on external tables 
+3.external tables do not required any database space.
+4.external tables can be selected,sorted ,filtered,joined,intersected,unioned,minused 
+5.external tables is faster than sql*loader.
+
+		LOBS(large objects)
+		==============
+-Oracle 8.0 introduced LOBS
+-LOBS are predefined datatypes which is used to store large amount of data 
+			(or)
+-stored binary data in databases.
+-In oracle if you want to stored more than 2000 bytes of alphanumeric data then we are using
+ varchar2 datatypes 
+-varchar2 datatypes stores upto 4000 bytes 
+-In oracle if you want to store more than 4000 byrtes of alphanumeric data then we are using 
+long datatypes 
+-long datatypes stored upto 2gb data but there can be only 1 long column per a table and also 
+we can not create primary key on long datatype column to overcome this problem then oracle
+8.0 introduced clob datatype 
+-Syntax:-
+=====
+	columnname long
+-In oracle if you want to stored binary data or hexa decimal data then we are using raw datatype
+-raw datatype stores upto 2000 bytes 
+-if you want to stored more than 2000 bytes of binary data then we are using long raw datatye
+-this datatype stres upto 2gb data but there can be only one long raw column for a tables to overcome 
+this problem oracle 8.0 introduced blob datatype.
+-Syntax:-
+======
+	1.columnname raw(size);
+	2.columnname long raw
+
+-Oracle having two types of large objects this are
+	1.internal large objects 
+	2.external large objects 
+1.internal large objects:-
+=================
+-internal large objects are stored with in oracle database 
+-oracle having two types of large objects this are
+	1.charector large objects(clob)
+	2.binary large object(blob)
+Syntax:-
+=====
+	columnname clob
+Syntax:-
+=====
+	columnname blob
+
+2.external large objects:-
+=================
+-external large objects are store in outside of the oracle database 
+i.e this external large objects are stored with in OS files.
+-external large objects is an bfile(binary file) datatype
+Syntax:-
+=====
+	columnname bfile;
+
+Differnce between long,lob datatypes:-
+===========================
+	Long				lob
+1.It can stored upto 2gb data		1.It can store upto 4gb data 
+2.there can be only one long		2.a table may more than one 
+column per a table			lob column
+3.subquery can not select		3.subquery can select 
+long datatype column		lob column 
+
+lob locator:-
+========
+-In oracle when ever we are storing data or image into lob columns then the data is not stored 
+directly in table column instead of this one a pointer is created with a table column that pointer 
+automatically  points to where the actual data is stored else where in oracle database 
+-In internal large objects sides this pointer is also called as lob locator 
+ex.
+scrren shot daigram
+
+Storing large amount of data into clob by using sqlloader tools
+		(or)
+Storing an image into  blob column by using sqlloader tools:-
+===========================================
+-In oracle if you want to store large amount of data into clob column or if you want to stored an 
+image into blob column then we are using lob file function with in sqlloader tool 
+-this function always accepts file name as a parameter 
+Syntax;-
+=====
+	columnname lobfile(filenamecolumn) terminated by eof
+
+-ex.
+file.txt in some data
+file1.txt inside file.txt
+SQL>create table target(file_name varchar2(10),file_data clob);
+ctl file:-sandy.ctl
+load data 
+infile 'd:\file1.txt'
+insert 
+into table target
+fields terminated by ','
+(file_name,
+file_data lobfile(file_name) terminated by eof)
+cmd promtpt
+sqlldr userid=scott/tiger
+control = d:\sandy.ctl
+SQL>select * from terget;
+
+Store Image or large amount of data 
+==========================
+Note:-
+In oracle we can also stored large amount of data or image directly into bfile column by using bfile
+name function this function accets 2 parameters
+Syntax:-
+=====
+	bfilename('aliasdirectoryname','filename');
+-once we are storing large amount of data for image by using bfile name function then we are not 
+allow to display content in sql+tools
+ ex.
+SQL>create table test(col1 bfile);
+ SQL>insert into test values(bfilename('XYZ','file.txt'));
+SQL>select * from test;
+error:column or attribute type can not be display
+
+
+
+
+
+
+
+===================================================================
+update.delete statements are used in explicit cursor
+		(or)
+cursor locking machanism
+=====================================
+-In all relational databases locking is a machanism which is used to privents  unautorised access
+for our resource.
+-In all relational databases if you want to perform locks and set of rows then we are using for 
+update clause 
+-This clause is used in select statement only 
+
+Syntax:-
+	select * from tablename
+	where condition for update
+
+-In all relational databases we are performing lock when another user  but we can not perform DML 
+operation and also 
+-In all relational databases when ever we are using commit,rollback command then automatically 
+locks are releas.
+
+
+SQL>conn scott/Sandy220			SQL>conn murali/murali
+
+SQL>select * from emp 			SQL>update scott.emp
+where deptno=10 for update			set sal=sal+100
+					where deptno=10;
+					[we cannot perform dml peration]
+SQL>commit;[for releasing locks]
+
+
+Query.
+write a pl/sql explicit cursor program which is used to modify salarys of the employees in emp table 
+based on following conditions.
+1.if job='CLERK' then increment sal=>100
+2.if job='SALESMAN' then decrement sal->200
+Ans:-
+===
+declare
+cursor c1 is select * from emp;
+i emp%rowtype;
+begin
+open c1;
+loop
+fetch c1 into i;
+exit when i%notfound;
+if i.job='CLERK' then 
+update emp set sal=sal+100 where
+empno=i.empno;
+else if i.job='SALESMAN' then
+update emp set sal=sal-200 where
+empno=i.empno;
+end if;
+end loop;
+close c1;
+end;
+/
+
+ -In all relational databases when ever we are perforing DML transactions then automatically 
+database server used default locks
+-If you want to perform locks prior to DML transaction then we are using explicit locking machanism
+by using explicit cursor    
+-If you want to perform locks by using explicit cursor then we are using for update clause in cursor
+select statement   
+-When ever we are using for update clasue also when we are opeing the cursor then only locks are 
+establish 
+Syntax:-
+======
+	cursor cursorname is select * from tablename 
+	where condition for update 
+
+-Where current of:-
+=============
+-where current of clause used to update or delete latestly fetched  from the cursor memory area
+-where current of clause internally used rowid
+-where current of clause is used update,delete statement only
+Syntax:-
+=====
+	update tablename set colname=newvalue
+	where current of cursorname ;
+Syntax:-
+=====
+	delete from tablename 
+	where current of cursorname;
+
+When to use where current of clause:-
+===========================
+-In all relational database when ever resource column having duplicate data and also when we are
+using that duplicate data column in where condition of the update,delete statement in explicit
+cursor 
+then database server display wrong result o overcome this problem when ever resource table 
+does not have a primary key in that case only use where current of clause in update,delete statemnet 
+in cursor program because where current of clause internally uses rowid 
+Note:-
+====
+-in all relational databases when ever we are using where current of clause then we must used 
+for update clause in cursor select statement otherwise database server return error
+-when ever after proccessing we must release the locks by using commit or rollback command.
+ex.
+SQL>create table test(ename varchar2(10),sal number(10));
+SQL>insert into test values('&ename',&sal);
+SQL>commit;
+SQL>select * from test;
+	ENAME		  SAL
+	   a		1000
+	   b		2000
+	   a		3000
+	   b		4000	
+	   c 		5000
+
+SQL>declare
+cursor c1 is select * from test;
+begin
+for i in c1
+loop
+update test set sal=sal+1000
+where ename=i.ename;
+end loop;
+end;
+/
+SQL>select * from test;
+	ENAME		SAL
+	a		3000
+	b		4000
+	a		5000	
+	b		6000
+	c		6000
+Solution:-
+======
+SQL>rollback;
+SQL>select * from test;
+	ENAME		  SAL
+	   a		1000
+	   b		2000
+	   a		3000
+	   b		4000	
+	   c 		5000
+
+
+SQL>declare
+cursor c1 is select * from test for update;
+begin
+ for i in c1
+loop
+update test set sal=sal+1000
+where current of c1
+end loop;
+commit;
+end;
+/
+
+SQL>select * from test;
+	ENAME		SAL
+	a		2000
+	b		3000
+	a		4000
+	b		5000
+	c		6000	
+
+Query.write a pl/sql explicit cursor program which is used to increament salary of the 5th record 
+from emp record by using where current of clause 
+Ans:-
+
+declare
+cursor c1 is select * from emp for update
+begin
+for i in c1
+loop
+if  c1%rowcount=5 then
+update emp set sal=sal+100
+where current of c1;
+end if;
+end loop;
+commit;
+end;
+/
+SQL>select * from emp;
+
+Query.Write a pl/sql explicit cursor program which is used to delete 10th record from emp table 
+by using where current of clause .
+Ans:-
+
+declare 
+cursor c1 is select * from emp for update;
+begin
+for i in c1
+loop 
+if c1%rowcount=10 then
+delete from emp 
+where current of c1;
+end if;
+end loop;
+commit;
+end;
+/
+
+SQL>select * from emp;
+
+Query.Write a pl/sql program by using following table update column C based of the following conditions
+1.for first row update=A+B
+2.for second rpw update C=A-B
+3.for third row update C=A*B
+4.for fouth row update C=A/B
+SQL>create table test(A number(10),B number(10),C number(10));
+SQL>insert into test values(7,3,null) 4 time
+/
+SQL>select * from test
+	A	B	C
+	7	3
+	7	3
+	7	3
+	7	3	
+Ans:-
+declare
+ cursor c1 is select * from test for update;
+begin 
+for i in c1
+loop
+if c1%rowcount=1 then
+update test set c=a+b
+where current of c1;
+elsif c1%rowcount=2 then
+update test set c=a-b
+where current of c1;
+elsif c1%rowcount=3 then
+update test set c=a*b
+where current of c1;
+elsif c1%rowcount=4 then
+update test set C=A/B
+where current of c1;
+end if;
+end loop;
+commit;
+end;
+
+SQL>selct * from test;
+/
+SQL>select * from test
+	A	B	C
+	7	3	10
+	7	3	3
+	7	3	21
+	7	3	2
+-
+ORACLE 10g,11g,12cFeatures:-
+======================
+
+ORACLE 10g New Features:-
+====================
+1)Oracle 10g introduced regular expression 
+
+Regular Expression:-
+==============
+-Oracle 10g introduced regular expression 
+-regular expressions or special charectors having dpecial meaning 
+-regular expression are used to search or match or replace strings 
+-In oracle regular expressions works with char,varchar,varchar2,clob datatype but 
+regular expressions does not work with long datatypes.
+-Oracle provided following predefined regular expression function this are 
+1.regexp_like()
+2.regexp_instr()
+3.regexp_substr()
+4.regexp_replace()
+5.regexp_count()---------->(Oracle 11g)
+
+-Regular expressions having meta charectors,This meta charecters are common for all software
+languages 
+-meta charecters are special charecters having  special meaning.
+-Regular Expression are also called as posix notation 
+	
+	. ------->matches any charecter
+	
+	+ ------->matches one or more occurence of the preceding charector 
+	
+	?-------->matches zero or one occurence of the preceding charector
+		
+	* ------->matches zero or more occurence of the preceding charector
+	
+	^ --------->beging  of the line anchor
+	
+	$ --------->end of the line anchor 
+
+	{m} -------> matches exact m occurence 
+	{m,n} ----->matches atleast m to n occurences 
+	
+	|-->(or operator)--->ex a|b ---> matches either a or b
+	
+	[....] ------->matches list values 
+		ex:-[abc] ----> matches a or b or c
+	
+	[^....] ------->Negation ------>matches other than ist of charecters 
+
+	\ --------->Escape charecters
+
+	\d ------->matches digits 
+
+	\s -------> matches space 
+
+	\w -------> matches word
+
+	(....) ------>grouping (or) subexpression
+
+	[[:digit:]] -----> matches digit
+
+	[[:upper:]] ----->matches upper case 
+
+	[[:lower:]] ------>matches lower case
+
+	[[:alnum:]] ------>matches alphabets,digits 
+
+	[[:alpha:]] ------->matches alphabets
+
+	\n -----> back referneces ----->here n represent the number
+		ex:-\1 --->represent first group 
+		      \2 ---->represent second group
+
+1.Regexp_like():-
+============
+-This function is used to retrive data based on regular expression pattern 
+Syntax:-
+=====
+	regexp_like(colname,'pattern');
+
+Query.write a query to display the employee whos ename contains AM or AR string from emp tables
+by using like operator 
+Ans:-
+SQL>select * from emp where ename like '%AM%' or
+ename like '%AR%';
+ 	ENAME
+	WARD
+	MARTIN
+	ADAMS
+	JAMES
+Query.write a query to display the employee whos ename contains AM or AR string from emp tables
+by using regexp_like function 
+Ans
+SQL> select * from emp where  regexp_like(ename,'%AM%') | regexp_like(ename,'%AR%') ;
+	ENAME
+	WARD
+	MARTIN
+	ADAMS
+	JAMES
+
+Query.write a query to display the employee whos ename start with either a or b by using regexp_like
+function
+SQL> select * from emp where  regexp_like(ename,'^A|^B') ;
+	ENAME
+	ALLEN
+	BLAKE
+	ADAM
+
+Query.write a query display the employeee whos ename end with either N or S by using regexp_like
+function
+SQL>select * from emp where regexp_like(ename,'N$|S$');
+	ENAME
+	ALLEN
+	JONES
+	MARTIN
+	ADAMS
+Query write a quey to display the employee whos ename second letter is M or L or A by using 
+regexp_like function 
+ANS;-
+SQL>select * from emp where regexp_like(ename,'^.[MLA]') ;
+	ENAME
+	ALLEN
+	MARTIN
+	SMITH
+	
+Query Write aquery to display the employee whos second letter is other than MLA from emp table 
+by using regexp_like function
+
+SQL>select * from emp
+where regexp_like(ename,'^.[^MLA]'); 
+	Ename
+	JONES
+	SCOTT
+	KING
+	TURNER
+	
